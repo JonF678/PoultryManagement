@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Add Sample Cage</title>
+    <script src="js/db.js"></script>
+</head>
+<body>
+    <h1>Debug: Add Sample Cage</h1>
+    <button onclick="addSampleCage()">Add Sample Cage</button>
+    <div id="result"></div>
+
+    <script>
+        let db;
+        
+        async function initDB() {
+            db = new Database();
+            await db.init();
+        }
+        
+        async function addSampleCage() {
+            await initDB();
+            
+            // First, create a sample cycle if none exists
+            const cycles = await db.getAll('cycles');
+            let cycleId;
+            
+            if (cycles.length === 0) {
+                const sampleCycle = {
+                    name: 'Test Cycle 2025',
+                    startDate: '2025-01-01',
+                    endDate: null,
+                    status: 'active',
+                    totalBirds: 1000,
+                    targetEggs: 25000,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                cycleId = await db.add('cycles', sampleCycle);
+                document.getElementById('result').innerHTML += '<p>Created sample cycle</p>';
+            } else {
+                cycleId = cycles[0].id;
+            }
+            
+            // Add sample cage
+            const sampleCage = {
+                name: 'Cage A1',
+                capacity: 500,
+                currentBirds: 450,
+                type: 'layer',
+                location: 'Building A, Section 1',
+                cycleId: cycleId,
+                status: 'active',
+                totalEggs: 0,
+                totalFeed: 0,
+                mortality: 0,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            try {
+                const cageId = await db.add('cages', sampleCage);
+                document.getElementById('result').innerHTML += '<p>✅ Sample cage added successfully! ID: ' + cageId + '</p>';
+                document.getElementById('result').innerHTML += '<p><a href="/" target="_blank">Go back to main app</a></p>';
+                document.getElementById('result').innerHTML += '<p>Navigate to: Cycles → Select your cycle → Click on "Cage A1"</p>';
+            } catch (error) {
+                document.getElementById('result').innerHTML += '<p>❌ Error: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>
