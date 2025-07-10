@@ -100,6 +100,26 @@ Preferred communication style: Simple, everyday language.
 - **ES6+ Features**: Uses modern JavaScript features
 - **Progressive Enhancement**: Graceful degradation for older browsers
 
+## Recent Changes
+
+### July 10, 2025 - Enhanced Daily Entry System
+- **Updated Daily Entry Form**: Modified cage detail component to capture specific data points:
+  - Date, flock age (days), opening birds, cage, mortality, birds sold
+  - Eggs produced in trays (1 tray = 30 eggs), current feed in kg
+- **Automated Calculations**: System now calculates:
+  - Age in days & weeks, closing balance of birds
+  - Cumulative mortality till date and percentage
+  - Production percentage (current), cumulative production (trays)
+  - Hen house production (eggs per bird from 19th week laying period)
+  - Feed metrics: current/cumulative feed per bird (kg), current/cumulative feed per egg (grams)
+
+### July 10, 2025 - Added Sales, Expense, and Vaccination Tracking
+- **Sales Management**: Track egg sales per crate with customer details, payment methods
+- **Expense Management**: Record expenses per cycle by category (feed, medication, labor, etc.)
+- **Vaccination Records**: Comprehensive vaccination tracking with recommended schedules
+- **Database Schema**: Updated to version 2 with new object stores for sales, expenses, vaccinations
+- **Navigation**: Enhanced analytics dashboard with quick access to all tracking features
+
 ## Recent Changes: Latest modifications with dates
 
 ### July 10, 2025 - Enhanced Daily Entry System
