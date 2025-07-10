@@ -1,7 +1,7 @@
 class Database {
     constructor() {
         this.dbName = 'PoultryManagementDB';
-        this.version = 1;
+        this.version = 2;
         this.db = null;
     }
 
@@ -54,6 +54,37 @@ class Database {
                     prodStore.createIndex('cageId', 'cageId', { unique: false });
                     prodStore.createIndex('date', 'date', { unique: false });
                     prodStore.createIndex('cycleId', 'cycleId', { unique: false });
+                }
+
+                // Create sales records object store
+                if (!this.db.objectStoreNames.contains('salesRecords')) {
+                    const salesStore = this.db.createObjectStore('salesRecords', {
+                        keyPath: 'id',
+                        autoIncrement: true
+                    });
+                    salesStore.createIndex('cycleId', 'cycleId', { unique: false });
+                    salesStore.createIndex('date', 'date', { unique: false });
+                }
+
+                // Create expenses object store
+                if (!this.db.objectStoreNames.contains('expenses')) {
+                    const expenseStore = this.db.createObjectStore('expenses', {
+                        keyPath: 'id',
+                        autoIncrement: true
+                    });
+                    expenseStore.createIndex('cycleId', 'cycleId', { unique: false });
+                    expenseStore.createIndex('date', 'date', { unique: false });
+                    expenseStore.createIndex('category', 'category', { unique: false });
+                }
+
+                // Create vaccination records object store
+                if (!this.db.objectStoreNames.contains('vaccinations')) {
+                    const vaccinationStore = this.db.createObjectStore('vaccinations', {
+                        keyPath: 'id',
+                        autoIncrement: true
+                    });
+                    vaccinationStore.createIndex('cycleId', 'cycleId', { unique: false });
+                    vaccinationStore.createIndex('date', 'date', { unique: false });
                 }
 
                 // Create feed logs object store

@@ -19,6 +19,21 @@ class Router {
                 component: 'analytics',
                 title: 'Analytics Dashboard'
             },
+            'sales': {
+                component: 'salesManager',
+                title: 'Sales Management',
+                requiresParam: 'cycleId'
+            },
+            'expenses': {
+                component: 'expenseManager',
+                title: 'Expense Management',
+                requiresParam: 'cycleId'
+            },
+            'vaccinations': {
+                component: 'vaccinationManager',
+                title: 'Vaccination Records',
+                requiresParam: 'cycleId'
+            },
             'settings': {
                 component: 'settings',
                 title: 'Settings'
@@ -172,6 +187,27 @@ class Router {
                     break;
                 case 'analytics':
                     analytics.init(params.cycleId ? parseInt(params.cycleId) : null);
+                    break;
+                case 'salesManager':
+                    if (params.cycleId) {
+                        salesManager.init(parseInt(params.cycleId));
+                    } else {
+                        throw new Error('Cycle ID required for sales manager');
+                    }
+                    break;
+                case 'expenseManager':
+                    if (params.cycleId) {
+                        expenseManager.init(parseInt(params.cycleId));
+                    } else {
+                        throw new Error('Cycle ID required for expense manager');
+                    }
+                    break;
+                case 'vaccinationManager':
+                    if (params.cycleId) {
+                        vaccinationManager.init(parseInt(params.cycleId));
+                    } else {
+                        throw new Error('Cycle ID required for vaccination manager');
+                    }
                     break;
                 case 'settings':
                     this.loadSettings();

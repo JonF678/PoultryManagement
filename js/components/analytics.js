@@ -55,6 +55,19 @@ class Analytics {
                     </p>
                 </div>
                 <div>
+                    ${this.cycle ? `
+                        <div class="btn-group me-2">
+                            <button class="btn btn-outline-success" onclick="router.navigate('sales', {cycleId: ${this.cycle.id}})">
+                                <i class="fas fa-shopping-cart me-2"></i>Sales
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="router.navigate('expenses', {cycleId: ${this.cycle.id}})">
+                                <i class="fas fa-receipt me-2"></i>Expenses
+                            </button>
+                            <button class="btn btn-outline-info" onclick="router.navigate('vaccinations', {cycleId: ${this.cycle.id}})">
+                                <i class="fas fa-syringe me-2"></i>Vaccinations
+                            </button>
+                        </div>
+                    ` : ''}
                     <button class="btn btn-outline-primary me-2" onclick="analytics.exportData()">
                         <i class="fas fa-download me-2"></i>Export Data
                     </button>
