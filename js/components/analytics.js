@@ -293,8 +293,11 @@ class Analytics {
         const filteredLogs = this.getFilteredLogs();
         const filteredFeedLogs = this.getFilteredFeedLogs();
 
-        // Total production
-        const totalProduction = filteredLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+        // Total production - convert trays to eggs (1 tray = 30 eggs)
+        const totalProduction = filteredLogs.reduce((sum, log) => {
+            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+            return sum + eggs;
+        }, 0);
         document.getElementById('total-production').textContent = totalProduction.toLocaleString();
 
         // Average laying rate
@@ -324,17 +327,36 @@ class Analytics {
 
     loadProductionTrendChart() {
         const filteredLogs = this.getFilteredLogs();
+        
+        if (filteredLogs.length === 0) {
+            // Show no data message
+            document.getElementById('productionTrendChart').parentElement.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <p>No production data available yet.</p>
+                    <small>Start logging daily production to see trends.</small>
+                </div>
+            `;
+            return;
+        }
+        
         const groupedData = Calculations.groupDataByPeriod(filteredLogs, 'week');
         
         const labels = Object.keys(groupedData).sort();
         const productionData = labels.map(week => {
             const weekLogs = groupedData[week];
-            return weekLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+            return weekLogs.reduce((sum, log) => {
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                return sum + eggs;
+            }, 0);
         });
 
         const layingData = labels.map(week => {
             const weekLogs = groupedData[week];
-            const totalEggs = weekLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+            const totalEggs = weekLogs.reduce((sum, log) => {
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                return sum + eggs;
+            }, 0);
             const avgBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
             return avgBirds > 0 ? Calculations.calculateLayingPercentage(totalEggs, avgBirds, 7) : 0;
         });
@@ -363,9 +385,23 @@ class Analytics {
     }
 
     loadCagePerformanceChart() {
+        if (this.cages.length === 0) {
+            document.getElementById('cagePerformanceChart').parentElement.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-home fa-2x mb-3"></i>
+                    <p>No cages available.</p>
+                    <small>Add cages to see performance comparison.</small>
+                </div>
+            `;
+            return;
+        }
+
         const cagePerformance = this.cages.map(cage => {
             const cageLogs = this.productionLogs.filter(log => log.cageId === cage.id);
-            const totalEggs = cageLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+            const totalEggs = cageLogs.reduce((sum, log) => {
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                return sum + eggs;
+            }, 0);
             const avgLayingRate = cage.currentBirds > 0 ?
                 Calculations.calculateLayingPercentage(totalEggs, cage.currentBirds, cageLogs.length || 1) : 0;
             
@@ -420,8 +456,9 @@ class Analytics {
         
         const efficiencyData = recentLogs.map(log => {
             const feedLog = this.feedLogs.find(f => f.date === log.date && f.cageId === log.cageId);
-            const feedAmount = feedLog?.amount || 0;
-            return Calculations.calculateFeedEfficiency(log.eggsCollected || 0, feedAmount);
+            const feedAmount = feedLog?.amount || log.currentFeed || 0;
+            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+            return Calculations.calculateFeedEfficiency(eggs, feedAmount);
         });
 
         const movingAvg = Calculations.calculateMovingAverage(efficiencyData, 7);
@@ -454,8 +491,12 @@ class Analytics {
             const cageLogs = this.productionLogs.filter(log => log.cageId === cage.id);
             const cageFeedLogs = this.feedLogs.filter(log => log.cageId === cage.id);
             
-            const totalEggs = cageLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
-            const totalFeed = cageFeedLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
+            const totalEggs = cageLogs.reduce((sum, log) => {
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                return sum + eggs;
+            }, 0);
+            const totalFeed = cageFeedLogs.reduce((sum, log) => sum + (log.amount || 0), 0) +
+                           cageLogs.reduce((sum, log) => sum + (log.currentFeed || 0), 0);
             
             const layingRate = cage.currentBirds > 0 ?
                 Calculations.calculateLayingPercentage(totalEggs, cage.currentBirds, cageLogs.length || 1) : 0;
@@ -475,44 +516,73 @@ class Analytics {
         cageStats.sort((a, b) => b.performanceScore - a.performanceScore);
 
         const tableBody = document.getElementById('performance-table');
-        tableBody.innerHTML = cageStats.map(stat => `
-            <tr onclick="router.navigate('cage-detail', {id: ${stat.cage.id}})" style="cursor: pointer;">
-                <td><strong>${stat.cage.name}</strong></td>
-                <td>${stat.totalEggs.toLocaleString()}</td>
-                <td>
-                    <span class="badge bg-${stat.layingRate > 80 ? 'success' : stat.layingRate > 60 ? 'warning' : 'danger'}">
-                        ${stat.layingRate.toFixed(1)}%
-                    </span>
-                </td>
-                <td>${stat.feedEfficiency.toFixed(2)}</td>
-                <td>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-primary" style="width: ${Math.min(100, stat.performanceScore)}%"></div>
-                    </div>
-                    <small class="text-muted">${stat.performanceScore.toFixed(0)}/100</small>
-                </td>
-            </tr>
-        `).join('');
+        if (cageStats.length > 0) {
+            tableBody.innerHTML = cageStats.map(stat => `
+                <tr onclick="router.navigate('cage-detail', {id: ${stat.cage.id}})" style="cursor: pointer;">
+                    <td><strong>${stat.cage.name}</strong></td>
+                    <td>${stat.totalEggs.toLocaleString()}</td>
+                    <td>
+                        <span class="badge bg-${stat.layingRate > 80 ? 'success' : stat.layingRate > 60 ? 'warning' : 'danger'}">
+                            ${stat.layingRate.toFixed(1)}%
+                        </span>
+                    </td>
+                    <td>${stat.feedEfficiency.toFixed(2)}</td>
+                    <td>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" style="width: ${Math.min(100, stat.performanceScore)}%"></div>
+                        </div>
+                        <small class="text-muted">${stat.performanceScore.toFixed(0)}/100</small>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No production data available yet. Add some daily entries to see performance metrics.
+                    </td>
+                </tr>
+            `;
+        }
     }
 
     loadInsights() {
         const insights = this.generateInsights();
         const insightsList = document.getElementById('insights-list');
         
-        insightsList.innerHTML = insights.map(insight => `
-            <div class="alert alert-${insight.type} alert-dismissible">
-                <i class="fas ${insight.icon} me-2"></i>
-                <strong>${insight.title}</strong><br>
-                <small>${insight.description}</small>
-            </div>
-        `).join('');
+        if (insights.length === 0) {
+            insightsList.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Getting Started</strong><br>
+                    <small>Add some production data to receive insights and recommendations about your farm's performance.</small>
+                </div>
+            `;
+        } else {
+            insightsList.innerHTML = insights.map(insight => `
+                <div class="alert alert-${insight.type} alert-dismissible">
+                    <i class="fas ${insight.icon} me-2"></i>
+                    <strong>${insight.title}</strong><br>
+                    <small>${insight.description}</small>
+                </div>
+            `).join('');
+        }
     }
 
     generateInsights() {
         const insights = [];
         
+        // Check if we have any data first
+        if (this.productionLogs.length === 0 || this.cages.length === 0) {
+            return insights; // Return empty array to show "Getting Started" message
+        }
+        
         // Calculate overall metrics
-        const totalProduction = this.productionLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+        const totalProduction = this.productionLogs.reduce((sum, log) => {
+            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+            return sum + eggs;
+        }, 0);
         const totalBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
         const avgLayingRate = totalBirds > 0 ?
             Calculations.calculateLayingPercentage(totalProduction, totalBirds, this.productionLogs.length || 1) : 0;
@@ -534,8 +604,9 @@ class Analytics {
             });
         }
 
-        // Feed efficiency insights
-        const totalFeed = this.feedLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
+        // Feed efficiency insights  
+        const totalFeed = this.feedLogs.reduce((sum, log) => sum + (log.amount || 0), 0) +
+                         this.productionLogs.reduce((sum, log) => sum + (log.currentFeed || 0), 0);
         const feedEfficiency = Calculations.calculateFeedEfficiency(totalProduction, totalFeed);
         
         if (feedEfficiency < 0.5) {
@@ -552,8 +623,14 @@ class Analytics {
         const previousLogs = this.productionLogs.slice(-14, -7);
         
         if (recentLogs.length > 0 && previousLogs.length > 0) {
-            const recentAvg = recentLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0) / recentLogs.length;
-            const previousAvg = previousLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0) / previousLogs.length;
+            const recentAvg = recentLogs.reduce((sum, log) => {
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                return sum + eggs;
+            }, 0) / recentLogs.length;
+            const previousAvg = previousLogs.reduce((sum, log) => {
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                return sum + eggs;
+            }, 0) / previousLogs.length;
             
             if (recentAvg > previousAvg * 1.1) {
                 insights.push({
