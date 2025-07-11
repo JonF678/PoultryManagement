@@ -122,6 +122,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes: Latest modifications with dates
 
+### July 11, 2025 - Replit Migration and Ghanaian Localization
+- **Currency Localization**: Changed all currency displays from USD to Ghanaian Cedis (₵)
+- **Egg Entry System**: Modified data entry from trays to individual eggs for more accurate tracking
+- **Cycle-Based Analytics**: Enhanced analytics to provide cycle-level metrics instead of cage-level
+- **Profit Analysis**: Added comprehensive profit tracking with ROI calculations
+- **Cycle Filtering**: Implemented cycle selection in analytics dashboard
+- **Sample Data**: Generated comprehensive sample data with 2 active cycles, 8 cages, 90 days of production/feed logs, sales, expenses, and vaccination records
+- **Cycle Metrics**: Added cycle-based calculations for production efficiency, feed conversion, and profitability
+
 ### July 10, 2025 - Enhanced Daily Entry System
 - **Updated Daily Entry Form**: Modified cage detail component to capture specific data points:
   - Date, flock age (days), opening birds, cage, mortality, birds sold

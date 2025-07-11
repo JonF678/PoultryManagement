@@ -38,6 +38,9 @@ class PoultryApp {
             await db.init();
             this.db = db;
             console.log('Database initialized successfully');
+            
+            // Generate sample data if this is the first run
+            await sampleDataGenerator.generateSampleData();
         } catch (error) {
             console.error('Database initialization failed:', error);
             throw new Error('Failed to initialize database. Please refresh the page.');
@@ -93,7 +96,7 @@ class PoultryApp {
     initializeSettings() {
         const defaultSettings = {
             defaultEggWeight: 60,
-            currency: 'USD',
+            currency: 'GHS',
             enableNotifications: true,
             theme: 'light',
             language: 'en'
@@ -227,8 +230,8 @@ class PoultryApp {
         return new Date(date).toLocaleString();
     }
 
-    formatCurrency(amount, currency = 'USD') {
-        return new Intl.NumberFormat('en-US', {
+    formatCurrency(amount, currency = 'GHS') {
+        return new Intl.NumberFormat('en-GH', {
             style: 'currency',
             currency: currency
         }).format(amount);

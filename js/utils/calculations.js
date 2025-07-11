@@ -102,7 +102,7 @@ class Calculations {
         return `${value.toFixed(decimals)}%`;
     }
 
-    static formatCurrency(value, currency = '$') {
+    static formatCurrency(value, currency = '₵') {
         return `${currency}${value.toFixed(2)}`;
     }
 
@@ -151,5 +151,45 @@ class Calculations {
             result.push(average);
         }
         return result;
+    }
+
+    // Add cycle-based metrics calculation methods
+    static calculateCycleMetrics(productionLogs, cages, feedLogs) {
+        const totalBirds = cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
+        const totalEggs = productionLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+        const totalFeed = feedLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
+        
+        const cycleLength = productionLogs.length > 0 ? 
+            Math.max(...productionLogs.map(log => log.flockAge || 0)) : 0;
+        
+        return {
+            totalBirds,
+            totalEggs,
+            totalFeed,
+            cycleLength,
+            avgLayingRate: this.calculateLayingPercentage(totalEggs, totalBirds, cycleLength),
+            feedConversionRatio: this.calculateFeedConversionRatio(totalFeed, totalEggs),
+            feedEfficiency: this.calculateFeedEfficiency(totalEggs, totalFeed)
+        };
+    }
+
+    static calculateHenHouseProduction(eggsProduced, flockAge, layingStartAge = 133) {
+        // Hen house production = eggs per bird from laying period (19 weeks = 133 days)
+        if (flockAge < layingStartAge) return 0;
+        const layingDays = flockAge - layingStartAge;
+        return layingDays > 0 ? eggsProduced / layingDays : 0;
+    }
+
+    static calculateCumulativeMetrics(logs) {
+        const totalMortality = logs.reduce((sum, log) => sum + (log.mortality || 0), 0);
+        const totalEggs = logs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+        const totalFeed = logs.reduce((sum, log) => sum + (log.currentFeed || 0), 0);
+        
+        return {
+            totalMortality,
+            totalEggs,
+            totalFeed,
+            avgProduction: logs.length > 0 ? totalEggs / logs.length : 0
+        };
     }
 }

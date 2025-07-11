@@ -1,9 +1,12 @@
 class Analytics {
     constructor() {
         this.cycle = null;
+        this.cycles = [];
         this.cages = [];
         this.productionLogs = [];
         this.feedLogs = [];
+        this.sales = [];
+        this.expenses = [];
         this.currentFilter = 'all';
         this.dateRange = 30; // days
     }
@@ -15,12 +18,17 @@ class Analytics {
                 this.cages = await db.getByIndex('cages', 'cycleId', parseInt(cycleId));
                 this.productionLogs = await db.getByIndex('productionLogs', 'cycleId', parseInt(cycleId));
                 this.feedLogs = await db.getByIndex('feedLogs', 'cycleId', parseInt(cycleId));
+                this.sales = await db.getByIndex('sales', 'cycleId', parseInt(cycleId));
+                this.expenses = await db.getByIndex('expenses', 'cycleId', parseInt(cycleId));
             } else {
                 // Load all data for overall analytics
                 this.cycle = null;
+                this.cycles = await db.getAll('cycles');
                 this.cages = await db.getAll('cages');
                 this.productionLogs = await db.getAll('productionLogs');
                 this.feedLogs = await db.getAll('feedLogs');
+                this.sales = await db.getAll('sales');
+                this.expenses = await db.getAll('expenses');
             }
 
             this.render();
@@ -86,6 +94,15 @@ class Analytics {
             <div class="card mb-4">
                 <div class="card-body">
                     <div class="row align-items-center">
+                        ${!this.cycle ? `
+                        <div class="col-md-3">
+                            <label for="cycleFilter" class="form-label">Cycle Filter</label>
+                            <select class="form-select" id="cycleFilter" onchange="analytics.updateCycleFilter(this.value)">
+                                <option value="all">All Cycles</option>
+                                ${this.cycles ? this.cycles.map(cycle => `<option value="${cycle.id}">${cycle.name}</option>`).join('') : ''}
+                            </select>
+                        </div>
+                        ` : ''}
                         <div class="col-md-3">
                             <label for="dateRange" class="form-label">Date Range</label>
                             <select class="form-select" id="dateRange" onchange="analytics.updateDateRange(this.value)">
@@ -97,19 +114,13 @@ class Analytics {
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label for="cageFilter" class="form-label">Cage Filter</label>
-                            <select class="form-select" id="cageFilter" onchange="analytics.updateCageFilter(this.value)">
-                                <option value="all">All Cages</option>
-                                ${this.cages.map(cage => `<option value="${cage.id}">${cage.name}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="col-md-3">
                             <label for="metricType" class="form-label">Primary Metric</label>
                             <select class="form-select" id="metricType" onchange="analytics.updateMetricType(this.value)">
                                 <option value="production">Egg Production</option>
                                 <option value="efficiency">Laying Efficiency</option>
                                 <option value="feed">Feed Consumption</option>
                                 <option value="mortality">Mortality Rate</option>
+                                <option value="profit">Profit Analysis</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -156,9 +167,9 @@ class Analytics {
                 <div class="col-md-3">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-info" id="avg-egg-weight">-</div>
-                            <div class="stats-label">Avg Egg Weight</div>
-                            <small class="text-muted" id="weight-trend">-</small>
+                            <div class="stats-value text-info" id="cycle-profit">-</div>
+                            <div class="stats-label">Cycle Profit</div>
+                            <small class="text-muted" id="profit-trend">-</small>
                         </div>
                     </div>
                 </div>
@@ -311,11 +322,13 @@ class Analytics {
         const feedEfficiency = Calculations.calculateFeedEfficiency(totalProduction, totalFeed);
         document.getElementById('feed-efficiency').textContent = feedEfficiency.toFixed(2);
 
-        // Average egg weight
-        const logsWithWeight = filteredLogs.filter(log => log.avgEggWeight > 0);
-        const avgEggWeight = logsWithWeight.length > 0 ?
-            logsWithWeight.reduce((sum, log) => sum + log.avgEggWeight, 0) / logsWithWeight.length : 0;
-        document.getElementById('avg-egg-weight').textContent = `${avgEggWeight.toFixed(1)}g`;
+        // Cycle Profit
+        const totalRevenue = this.sales.reduce((sum, sale) => sum + (sale.amount || 0), 0);
+        const totalExpenses = this.expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+        const profit = totalRevenue - totalExpenses;
+        const roi = totalExpenses > 0 ? ((profit / totalExpenses) * 100) : 0;
+        document.getElementById('cycle-profit').textContent = `₵${profit.toFixed(2)}`;
+        document.getElementById('profit-trend').textContent = `ROI: ${roi.toFixed(1)}%`;
     }
 
     loadCharts() {
@@ -696,6 +709,14 @@ class Analytics {
     updateCageFilter(cageId) {
         this.currentFilter = cageId;
         this.refreshAnalytics();
+    }
+
+    updateCycleFilter(cycleId) {
+        if (cycleId === 'all') {
+            router.navigate('analytics');
+        } else {
+            router.navigate('analytics', { cycleId: cycleId });
+        }
     }
 
     updateMetricType(type) {

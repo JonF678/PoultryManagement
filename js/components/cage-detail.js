@@ -113,10 +113,10 @@ class CageDetail {
                         </div>
                         <div class="col-md-3">
                             <div class="mb-3">
-                                <label for="eggsTrays" class="form-label">Eggs Produced (Trays)</label>
-                                <input type="number" class="form-control" id="eggsTrays" step="0.1" min="0" 
-                                       value="${todayLog?.eggsTrays || ''}" required>
-                                <small class="text-muted">1 tray = 30 eggs</small>
+                                <label for="eggsProduced" class="form-label">Eggs Produced</label>
+                                <input type="number" class="form-control" id="eggsProduced" min="0" 
+                                       value="${todayLog?.eggsProduced || ''}" required>
+                                <small class="text-muted">Number of eggs collected</small>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -313,7 +313,7 @@ class CageDetail {
             <tr>
                 <td>${new Date(log.date).toLocaleDateString()}</td>
                 <td>${log.amount || 0}</td>
-                <td>${log.cost ? '$' + log.cost.toFixed(2) : '-'}</td>
+                <td>${log.cost ? '₵' + log.cost.toFixed(2) : '-'}</td>
             </tr>
         `;
     }
@@ -418,11 +418,11 @@ class CageDetail {
             openingBirds: parseInt(document.getElementById('openingBirds').value),
             mortality: parseInt(document.getElementById('mortality').value) || 0,
             birdsSold: parseInt(document.getElementById('birdsSold').value) || 0,
-            eggsTrays: parseFloat(document.getElementById('eggsTrays').value) || 0,
+            eggsProduced: parseInt(document.getElementById('eggsProduced').value) || 0,
             currentFeed: parseFloat(document.getElementById('currentFeed').value) || 0,
             notes: document.getElementById('notes').value,
             // Calculate derived values
-            eggsCollected: parseFloat(document.getElementById('eggsTrays').value) * 30 || 0,
+            eggsCollected: parseInt(document.getElementById('eggsProduced').value) || 0,
             closingBirds: parseInt(document.getElementById('openingBirds').value) - 
                          (parseInt(document.getElementById('mortality').value) || 0) - 
                          (parseInt(document.getElementById('birdsSold').value) || 0),
