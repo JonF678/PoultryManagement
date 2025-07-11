@@ -1,7 +1,7 @@
 class Database {
     constructor() {
         this.dbName = 'PoultryManagementDB';
-        this.version = 3;
+        this.version = 4;
         this.db = null;
     }
 

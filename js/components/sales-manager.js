@@ -6,7 +6,7 @@ class SalesManager {
 
     async init(cycleId) {
         this.cycle = await db.get('cycles', parseInt(cycleId));
-        this.salesRecords = await db.getByIndex('salesRecords', 'cycleId', parseInt(cycleId));
+        this.salesRecords = await db.getByIndex('sales', 'cycleId', parseInt(cycleId));
         this.salesRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
         this.render();
     }
@@ -128,7 +128,7 @@ class SalesManager {
                 <div class="col-md-3">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-success">$${totalSales.toFixed(2)}</div>
+                            <div class="stats-value text-success">₵${totalSales.toFixed(2)}</div>
                             <div class="stats-label">Total Sales</div>
                         </div>
                     </div>
@@ -152,7 +152,7 @@ class SalesManager {
                 <div class="col-md-3">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-warning">$${avgPricePerCrate.toFixed(2)}</div>
+                            <div class="stats-value text-warning">₵${avgPricePerCrate.toFixed(2)}</div>
                             <div class="stats-label">Avg Price/Crate</div>
                         </div>
                     </div>
@@ -209,10 +209,10 @@ class SalesManager {
         return `
             <tr>
                 <td>${new Date(sale.date).toLocaleDateString()}</td>
-                <td><strong>${sale.customerName}</strong></td>
-                <td>${sale.cratesQuantity}</td>
-                <td>$${sale.pricePerCrate.toFixed(2)}</td>
-                <td><strong>$${sale.totalAmount.toFixed(2)}</strong></td>
+                <td><strong>${sale.customer || sale.customerName}</strong></td>
+                <td>${sale.crates || sale.cratesQuantity}</td>
+                <td>₵${sale.pricePerCrate.toFixed(2)}</td>
+                <td><strong>₵${sale.amount.toFixed(2)}</strong></td>
                 <td>
                     <span class="badge ${this.getPaymentBadgeClass(sale.paymentMethod)}">${sale.paymentMethod}</span>
                 </td>
@@ -240,23 +240,24 @@ class SalesManager {
     async handleSalesSubmit(event) {
         event.preventDefault();
 
+        const crates = parseFloat(document.getElementById('cratesQuantity').value);
+        const pricePerCrate = parseFloat(document.getElementById('pricePerCrate').value);
+        const amount = crates * pricePerCrate;
+        
         const formData = {
             cycleId: this.cycle.id,
             date: document.getElementById('saleDate').value,
-            customerName: document.getElementById('customerName').value,
-            cratesQuantity: parseFloat(document.getElementById('cratesQuantity').value),
-            pricePerCrate: parseFloat(document.getElementById('pricePerCrate').value),
-            eggsPerCrate: parseInt(document.getElementById('eggsPerCrate').value),
+            customer: document.getElementById('customerName').value,
+            crates: crates,
+            pricePerCrate: pricePerCrate,
+            amount: amount,
             paymentMethod: document.getElementById('paymentMethod').value,
-            totalAmount: parseFloat(document.getElementById('totalAmount').value),
-            totalEggs: parseFloat(document.getElementById('cratesQuantity').value) * parseInt(document.getElementById('eggsPerCrate').value),
             notes: document.getElementById('salesNotes').value,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            createdAt: new Date().toISOString()
         };
 
         try {
-            await db.add('salesRecords', formData);
+            await db.add('sales', formData);
             this.showToast('Sale recorded successfully!', 'success');
             
             // Reset form
@@ -277,7 +278,7 @@ class SalesManager {
         }
 
         try {
-            await db.delete('salesRecords', saleId);
+            await db.delete('sales', saleId);
             this.showToast('Sale deleted successfully!', 'success');
             await this.init(this.cycle.id); // Refresh the view
         } catch (error) {

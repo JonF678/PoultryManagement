@@ -335,11 +335,20 @@ class Analytics {
         const feedEfficiency = Calculations.calculateFeedEfficiency(totalProduction, totalFeed);
         document.getElementById('feed-efficiency').textContent = feedEfficiency.toFixed(2);
 
-        // Cycle Profit
+        // Cycle Profit - Debug logging
+        console.log('Sales data:', this.sales);
+        console.log('Expenses data:', this.expenses);
+        
         const totalRevenue = this.sales.reduce((sum, sale) => sum + (sale.amount || 0), 0);
         const totalExpenses = this.expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
         const profit = totalRevenue - totalExpenses;
         const roi = totalExpenses > 0 ? ((profit / totalExpenses) * 100) : 0;
+        
+        console.log('Total Revenue:', totalRevenue);
+        console.log('Total Expenses:', totalExpenses);
+        console.log('Profit:', profit);
+        console.log('ROI:', roi);
+        
         document.getElementById('cycle-profit').textContent = `₵${profit.toFixed(2)}`;
         document.getElementById('profit-trend').textContent = `ROI: ${roi.toFixed(1)}%`;
     }
