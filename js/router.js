@@ -264,22 +264,32 @@ class Router {
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
-                                    <label class="form-label">Export Data</label>
+                                    <label class="form-label">Export Data (CSV Format)</label>
                                     <div class="d-grid gap-2">
                                         <button class="btn btn-outline-primary" onclick="router.exportAllData()">
-                                            <i class="fas fa-download me-2"></i>Export All Data
+                                            <i class="fas fa-download me-2"></i>Export All Data (CSV)
                                         </button>
                                         <button class="btn btn-outline-secondary" onclick="router.exportCycles()">
-                                            <i class="fas fa-layer-group me-2"></i>Export Cycles
+                                            <i class="fas fa-layer-group me-2"></i>Export Cycles Summary (CSV)
+                                        </button>
+                                        <button class="btn btn-outline-info" onclick="router.exportProductionData()">
+                                            <i class="fas fa-egg me-2"></i>Export Production Data (CSV)
+                                        </button>
+                                        <button class="btn btn-outline-success" onclick="router.exportSalesData()">
+                                            <i class="fas fa-money-bill me-2"></i>Export Sales Data (CSV)
+                                        </button>
+                                        <button class="btn btn-outline-warning" onclick="router.exportExpenseData()">
+                                            <i class="fas fa-receipt me-2"></i>Export Expense Data (CSV)
                                         </button>
                                     </div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Import Data</label>
-                                    <input type="file" class="form-control" id="importFile" accept=".json">
+                                    <input type="file" class="form-control" id="importFile" accept=".json,.csv">
                                     <button class="btn btn-outline-success mt-2" onclick="router.importData()">
-                                        <i class="fas fa-upload me-2"></i>Import Data
+                                        <i class="fas fa-upload me-2"></i>Import Data (JSON only)
                                     </button>
+                                    <small class="text-muted">Note: CSV import coming soon. For now, use JSON format for importing.</small>
                                 </div>
                                 <hr>
                                 <div class="mb-3">
@@ -333,18 +343,76 @@ class Router {
             const cages = await db.getAll('cages');
             const productionLogs = await db.getAll('productionLogs');
             const feedLogs = await db.getAll('feedLogs');
+            const sales = await db.getAll('sales');
+            const expenses = await db.getAll('expenses');
+            const vaccinations = await db.getAll('vaccinations');
 
-            const exportData = {
-                cycles,
-                cages,
-                productionLogs,
-                feedLogs,
-                exportDate: new Date().toISOString(),
-                version: '1.0'
-            };
+            // Create a comprehensive CSV with all production data
+            const allData = [];
+            
+            // Add production logs with related data
+            for (const log of productionLogs) {
+                const cycle = cycles.find(c => c.id === log.cycleId);
+                const cage = cages.find(c => c.id === log.cageId);
+                
+                allData.push({
+                    Type: 'Production',
+                    Date: log.date,
+                    Cycle: cycle ? cycle.name : 'Unknown',
+                    Cage: cage ? cage.name : 'Unknown',
+                    'Flock Age (Days)': log.flockAge || '',
+                    'Opening Birds': log.openingBirds || '',
+                    'Mortality': log.mortality || 0,
+                    'Birds Sold': log.birdsSold || 0,
+                    'Closing Birds': log.closingBirds || '',
+                    'Eggs Collected': log.eggsCollected || 0,
+                    'Production Rate (%)': log.productionRate || '',
+                    'Cumulative Production': log.cumulativeProduction || '',
+                    'Current Feed (kg)': log.currentFeed || '',
+                    'Feed per Bird (kg)': log.feedPerBird || '',
+                    'Feed per Egg (g)': log.feedPerEgg || '',
+                    'Hen House Production': log.henHouseProduction || '',
+                    'Cumulative Mortality': log.cumulativeMortality || '',
+                    'Mortality Rate (%)': log.mortalityRate || '',
+                    'Notes': log.notes || ''
+                });
+            }
+            
+            // Add sales data
+            for (const sale of sales) {
+                const cycle = cycles.find(c => c.id === sale.cycleId);
+                
+                allData.push({
+                    Type: 'Sale',
+                    Date: sale.date,
+                    Cycle: cycle ? cycle.name : 'Unknown',
+                    'Customer': sale.customer || '',
+                    'Crates Sold': sale.crates || '',
+                    'Price per Crate (₵)': sale.pricePerCrate || '',
+                    'Total Amount (₵)': sale.amount || '',
+                    'Payment Method': sale.paymentMethod || '',
+                    'Notes': sale.notes || ''
+                });
+            }
+            
+            // Add expenses data
+            for (const expense of expenses) {
+                const cycle = cycles.find(c => c.id === expense.cycleId);
+                
+                allData.push({
+                    Type: 'Expense',
+                    Date: expense.date,
+                    Cycle: cycle ? cycle.name : 'Unknown',
+                    'Category': expense.category || '',
+                    'Description': expense.description || '',
+                    'Amount (₵)': expense.amount || '',
+                    'Vendor': expense.vendor || '',
+                    'Notes': expense.notes || ''
+                });
+            }
 
-            this.downloadJson(exportData, 'poultry-management-full-export');
-            this.showToast('All data exported successfully!', 'success');
+            this.downloadCsv(allData, 'poultry-management-complete-data');
+            this.showToast('All data exported as CSV successfully!', 'success');
         } catch (error) {
             console.error('Error exporting data:', error);
             this.showToast('Error exporting data. Please try again.', 'error');
@@ -354,12 +422,177 @@ class Router {
     async exportCycles() {
         try {
             const cycles = await db.getAll('cycles');
-            this.downloadJson(cycles, 'poultry-cycles-export');
-            this.showToast('Cycles exported successfully!', 'success');
+            const cages = await db.getAll('cages');
+            const productionLogs = await db.getAll('productionLogs');
+            const sales = await db.getAll('sales');
+            const expenses = await db.getAll('expenses');
+            
+            // Create cycle summary data
+            const cycleData = cycles.map(cycle => {
+                const cycleCages = cages.filter(c => c.cycleId === cycle.id);
+                const cycleLogs = productionLogs.filter(l => l.cycleId === cycle.id);
+                const cycleSales = sales.filter(s => s.cycleId === cycle.id);
+                const cycleExpenses = expenses.filter(e => e.cycleId === cycle.id);
+                
+                const totalEggs = cycleLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+                const totalRevenue = cycleSales.reduce((sum, sale) => sum + (sale.amount || 0), 0);
+                const totalExpenses = cycleExpenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+                const profit = totalRevenue - totalExpenses;
+                
+                return {
+                    'Cycle Name': cycle.name,
+                    'Start Date': cycle.startDate,
+                    'End Date': cycle.endDate || 'Active',
+                    'Status': cycle.status,
+                    'Total Birds': cycle.birdCount,
+                    'Number of Cages': cycleCages.length,
+                    'Total Eggs Produced': totalEggs,
+                    'Total Revenue (₵)': totalRevenue.toFixed(2),
+                    'Total Expenses (₵)': totalExpenses.toFixed(2),
+                    'Profit (₵)': profit.toFixed(2),
+                    'ROI (%)': totalExpenses > 0 ? ((profit / totalExpenses) * 100).toFixed(1) : '0',
+                    'Notes': cycle.notes || ''
+                };
+            });
+            
+            this.downloadCsv(cycleData, 'poultry-cycles-summary');
+            this.showToast('Cycles exported as CSV successfully!', 'success');
         } catch (error) {
             console.error('Error exporting cycles:', error);
             this.showToast('Error exporting cycles. Please try again.', 'error');
         }
+    }
+
+    async exportProductionData() {
+        try {
+            const cycles = await db.getAll('cycles');
+            const cages = await db.getAll('cages');
+            const productionLogs = await db.getAll('productionLogs');
+            
+            const productionData = productionLogs.map(log => {
+                const cycle = cycles.find(c => c.id === log.cycleId);
+                const cage = cages.find(c => c.id === log.cageId);
+                
+                return {
+                    'Date': log.date,
+                    'Cycle': cycle ? cycle.name : 'Unknown',
+                    'Cage': cage ? cage.name : 'Unknown',
+                    'Flock Age (Days)': log.flockAge || '',
+                    'Flock Age (Weeks)': log.flockAge ? Math.floor(log.flockAge / 7) : '',
+                    'Opening Birds': log.openingBirds || '',
+                    'Mortality': log.mortality || 0,
+                    'Birds Sold': log.birdsSold || 0,
+                    'Closing Birds': log.closingBirds || '',
+                    'Eggs Collected': log.eggsCollected || 0,
+                    'Production Rate (%)': log.productionRate || '',
+                    'Cumulative Production': log.cumulativeProduction || '',
+                    'Current Feed (kg)': log.currentFeed || '',
+                    'Feed per Bird (kg)': log.feedPerBird || '',
+                    'Feed per Egg (g)': log.feedPerEgg || '',
+                    'Hen House Production': log.henHouseProduction || '',
+                    'Cumulative Mortality': log.cumulativeMortality || '',
+                    'Mortality Rate (%)': log.mortalityRate || '',
+                    'Notes': log.notes || ''
+                };
+            });
+            
+            this.downloadCsv(productionData, 'production-data');
+            this.showToast('Production data exported successfully!', 'success');
+        } catch (error) {
+            console.error('Error exporting production data:', error);
+            this.showToast('Error exporting production data. Please try again.', 'error');
+        }
+    }
+
+    async exportSalesData() {
+        try {
+            const cycles = await db.getAll('cycles');
+            const sales = await db.getAll('sales');
+            
+            const salesData = sales.map(sale => {
+                const cycle = cycles.find(c => c.id === sale.cycleId);
+                
+                return {
+                    'Date': sale.date,
+                    'Cycle': cycle ? cycle.name : 'Unknown',
+                    'Customer': sale.customer || '',
+                    'Crates Sold': sale.crates || '',
+                    'Price per Crate (₵)': sale.pricePerCrate || '',
+                    'Total Amount (₵)': sale.amount || '',
+                    'Payment Method': sale.paymentMethod || '',
+                    'Notes': sale.notes || ''
+                };
+            });
+            
+            this.downloadCsv(salesData, 'sales-data');
+            this.showToast('Sales data exported successfully!', 'success');
+        } catch (error) {
+            console.error('Error exporting sales data:', error);
+            this.showToast('Error exporting sales data. Please try again.', 'error');
+        }
+    }
+
+    async exportExpenseData() {
+        try {
+            const cycles = await db.getAll('cycles');
+            const expenses = await db.getAll('expenses');
+            
+            const expenseData = expenses.map(expense => {
+                const cycle = cycles.find(c => c.id === expense.cycleId);
+                
+                return {
+                    'Date': expense.date,
+                    'Cycle': cycle ? cycle.name : 'Unknown',
+                    'Category': expense.category || '',
+                    'Description': expense.description || '',
+                    'Amount (₵)': expense.amount || '',
+                    'Vendor': expense.vendor || '',
+                    'Notes': expense.notes || ''
+                };
+            });
+            
+            this.downloadCsv(expenseData, 'expense-data');
+            this.showToast('Expense data exported successfully!', 'success');
+        } catch (error) {
+            console.error('Error exporting expense data:', error);
+            this.showToast('Error exporting expense data. Please try again.', 'error');
+        }
+    }
+
+    downloadCsv(data, filename) {
+        if (!data || data.length === 0) {
+            this.showToast('No data to export.', 'warning');
+            return;
+        }
+        
+        // Get all unique keys from all objects
+        const allKeys = new Set();
+        data.forEach(item => {
+            Object.keys(item).forEach(key => allKeys.add(key));
+        });
+        
+        const headers = Array.from(allKeys);
+        
+        // Create CSV content
+        const csvContent = [
+            headers.join(','), // Header row
+            ...data.map(item => 
+                headers.map(key => {
+                    const value = item[key] || '';
+                    // Escape commas and quotes in values
+                    return typeof value === 'string' && (value.includes(',') || value.includes('"')) 
+                        ? `"${value.replace(/"/g, '""')}"` 
+                        : value;
+                }).join(',')
+            )
+        ].join('\n');
+        
+        const dataBlob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `${filename}-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
     }
 
     downloadJson(data, filename) {

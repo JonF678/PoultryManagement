@@ -366,19 +366,61 @@ Break-Even = Fixed Costs ÷ (Price per Egg - Variable Cost per Egg)
 
 ## Data Export and Backup
 
-### Exporting Your Data:
+### Exporting Your Data (CSV Format):
 1. Go to Settings in the app
-2. Click "Export All Data"
-3. Save the file to your device
-4. Keep regular backups of your data
+2. Choose from multiple export options:
+   - **Export All Data (CSV)**: Complete dataset with all records
+   - **Export Cycles Summary (CSV)**: Cycle overview with financial metrics
+   - **Export Production Data (CSV)**: Daily production logs only
+   - **Export Sales Data (CSV)**: Sales records only
+   - **Export Expense Data (CSV)**: Expense records only
 
-### What Gets Exported:
-- All production cycles
-- Cage information
-- Daily production logs
-- Sales records
-- Expense records
-- Vaccination records
+### Why CSV Format?
+- **Excel Compatible**: Open directly in Microsoft Excel, Google Sheets, or any spreadsheet application
+- **Easy Analysis**: Filter, sort, and create pivot tables for advanced analysis
+- **Universal Format**: Works with any data analysis software
+- **Readable**: Can be opened in text editors for quick viewing
+
+### What Each Export Contains:
+
+#### **All Data Export:**
+- Production logs with calculated metrics
+- Sales records with customer information
+- Expense records by category
+- All organized by cycle and date
+
+#### **Cycles Summary Export:**
+- Cycle name, dates, and status
+- Total birds and number of cages
+- Total eggs produced
+- Financial summary (revenue, expenses, profit, ROI)
+
+#### **Production Data Export:**
+- Date, cycle, and cage information
+- Flock age in days and weeks
+- Bird counts (opening, mortality, sold, closing)
+- Egg collection and production rates
+- Feed consumption and efficiency metrics
+- Cumulative statistics
+
+#### **Sales Data Export:**
+- Date and cycle information
+- Customer details and payment methods
+- Crates sold and pricing
+- Total amounts in Ghanaian Cedis (₵)
+
+#### **Expense Data Export:**
+- Date and cycle information
+- Expense categories and descriptions
+- Amounts and vendor information
+- Notes and additional details
+
+### Best Practices for Data Export:
+1. **Regular Backups**: Export data weekly or monthly
+2. **Multiple Formats**: Keep both detailed and summary exports
+3. **Date Naming**: Files are automatically named with export date
+4. **Storage**: Keep backups in multiple locations (cloud storage, local drive)
+5. **Version Control**: Keep historical exports to track changes over time
 
 ---
 
