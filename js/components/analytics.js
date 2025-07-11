@@ -13,6 +13,11 @@ class Analytics {
 
     async init(cycleId = null) {
         try {
+            // Ensure database is initialized
+            if (!db || !db.db) {
+                throw new Error('Database not initialized');
+            }
+
             if (cycleId) {
                 this.cycle = await db.get('cycles', parseInt(cycleId));
                 this.cages = await db.getByIndex('cages', 'cycleId', parseInt(cycleId));
@@ -30,6 +35,14 @@ class Analytics {
                 this.sales = await db.getAll('sales');
                 this.expenses = await db.getAll('expenses');
             }
+
+            // Initialize arrays if they're undefined
+            this.cycles = this.cycles || [];
+            this.cages = this.cages || [];
+            this.productionLogs = this.productionLogs || [];
+            this.feedLogs = this.feedLogs || [];
+            this.sales = this.sales || [];
+            this.expenses = this.expenses || [];
 
             this.render();
             this.loadAnalytics();

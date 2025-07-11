@@ -1,7 +1,7 @@
 class Database {
     constructor() {
         this.dbName = 'PoultryManagementDB';
-        this.version = 2;
+        this.version = 3;
         this.db = null;
     }
 
@@ -56,9 +56,9 @@ class Database {
                     prodStore.createIndex('cycleId', 'cycleId', { unique: false });
                 }
 
-                // Create sales records object store
-                if (!this.db.objectStoreNames.contains('salesRecords')) {
-                    const salesStore = this.db.createObjectStore('salesRecords', {
+                // Create sales object store
+                if (!this.db.objectStoreNames.contains('sales')) {
+                    const salesStore = this.db.createObjectStore('sales', {
                         keyPath: 'id',
                         autoIncrement: true
                     });

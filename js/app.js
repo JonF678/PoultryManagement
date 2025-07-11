@@ -41,6 +41,14 @@ class PoultryApp {
             
             // Generate sample data if this is the first run
             await sampleDataGenerator.generateSampleData();
+            
+            // Debug analytics if needed
+            console.log('Running analytics debug check...');
+            setTimeout(() => {
+                if (window.debugAnalytics) {
+                    window.debugAnalytics();
+                }
+            }, 1000);
         } catch (error) {
             console.error('Database initialization failed:', error);
             throw new Error('Failed to initialize database. Please refresh the page.');
