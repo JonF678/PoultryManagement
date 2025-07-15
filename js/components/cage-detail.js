@@ -41,6 +41,69 @@ class CageDetail {
 
         document.getElementById('app-content').innerHTML = content;
         this.renderCharts();
+        this.loadMetrics();
+    }
+
+    async loadMetrics() {
+        try {
+            const calculations = await this.calculateDetailedMetrics();
+            
+            const metricsContent = `
+                <div class="row">
+                    <div class="col-lg-4">
+                        <h6 class="text-primary">Age & Birds</h6>
+                        <div class="mb-2">
+                            <span class="fw-bold">${calculations.ageInDays}</span> days 
+                            (<span class="fw-bold">${calculations.ageInWeeks}</span> weeks)
+                        </div>
+                        <div class="mb-2">
+                            Current Flock: <span class="fw-bold">${calculations.closingBirds.toLocaleString()}</span>
+                        </div>
+                        <div class="mb-2">
+                            Cum Mortality: <span class="fw-bold">${calculations.cumMortality.toLocaleString()}</span> 
+                            (<span class="fw-bold">${calculations.cumMortalityPercent}%</span>)
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <h6 class="text-success">Production</h6>
+                        <div class="mb-2">
+                            Current Production: <span class="fw-bold">${calculations.currentProductionPercent}%</span>
+                        </div>
+                        <div class="mb-2">
+                            Cum Production: <span class="fw-bold">${calculations.cumProductionEggs.toLocaleString()}</span> eggs
+                        </div>
+                        <div class="mb-2">
+                            Hen House Production: <span class="fw-bold">${calculations.henHouseProduction}</span> eggs/bird
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <h6 class="text-warning">Feed Efficiency</h6>
+                        <div class="mb-2">
+                            Current Feed/Bird: <span class="fw-bold">${calculations.currentFeedPerBird}</span> kg
+                        </div>
+                        <div class="mb-2">
+                            Cum Feed/Bird: <span class="fw-bold">${calculations.cumFeedPerBird}</span> kg
+                        </div>
+                        <div class="mb-2">
+                            Current Feed/Egg: <span class="fw-bold">${calculations.currentFeedPerEgg}</span> g
+                        </div>
+                        <div class="mb-2">
+                            Cum Feed/Egg: <span class="fw-bold">${calculations.cumFeedPerEgg}</span> g
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('metrics-content').innerHTML = metricsContent;
+        } catch (error) {
+            console.error('Error loading metrics:', error);
+            document.getElementById('metrics-content').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error loading flock metrics. Please try again.
+                </div>
+            `;
+        }
     }
 
     renderHeader() {
@@ -148,56 +211,20 @@ class CageDetail {
     }
 
     renderStats() {
-        const calculations = this.calculateDetailedMetrics();
-
         return `
             <div class="detailed-metrics mb-4">
                 <div class="card">
                     <div class="card-header">
-                        <h6 class="mb-0">Calculated Metrics</h6>
+                        <h6 class="mb-0">Flock-Level Metrics</h6>
+                        <small class="text-muted">Calculated for entire flock across all cages</small>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-lg-4">
-                                <h6 class="text-primary">Age & Birds</h6>
-                                <div class="mb-2">
-                                    <span class="fw-bold">${calculations.ageInDays}</span> days 
-                                    (<span class="fw-bold">${calculations.ageInWeeks}</span> weeks)
+                        <div id="metrics-content">
+                            <div class="text-center">
+                                <div class="spinner-border spinner-border-sm" role="status">
+                                    <span class="visually-hidden">Loading metrics...</span>
                                 </div>
-                                <div class="mb-2">
-                                    Closing Balance: <span class="fw-bold">${calculations.closingBirds}</span>
-                                </div>
-                                <div class="mb-2">
-                                    Cum Mortality: <span class="fw-bold">${calculations.cumMortality}</span> 
-                                    (<span class="fw-bold">${calculations.cumMortalityPercent}%</span>)
-                                </div>
-                            </div>
-                            <div class="col-lg-4">
-                                <h6 class="text-success">Production</h6>
-                                <div class="mb-2">
-                                    Current Production: <span class="fw-bold">${calculations.currentProductionPercent}%</span>
-                                </div>
-                                <div class="mb-2">
-                                    Cum Production: <span class="fw-bold">${calculations.cumProductionTrays}</span> trays
-                                </div>
-                                <div class="mb-2">
-                                    Hen House Production: <span class="fw-bold">${calculations.henHouseProduction}</span> eggs/bird
-                                </div>
-                            </div>
-                            <div class="col-lg-4">
-                                <h6 class="text-warning">Feed Efficiency</h6>
-                                <div class="mb-2">
-                                    Current Feed/Bird: <span class="fw-bold">${calculations.currentFeedPerBird}</span> kg
-                                </div>
-                                <div class="mb-2">
-                                    Cum Feed/Bird: <span class="fw-bold">${calculations.cumFeedPerBird}</span> kg
-                                </div>
-                                <div class="mb-2">
-                                    Current Feed/Egg: <span class="fw-bold">${calculations.currentFeedPerEgg}</span> g
-                                </div>
-                                <div class="mb-2">
-                                    Cum Feed/Egg: <span class="fw-bold">${calculations.cumFeedPerEgg}</span> g
-                                </div>
+                                <small class="d-block mt-2 text-muted">Calculating flock metrics...</small>
                             </div>
                         </div>
                     </div>
@@ -502,19 +529,23 @@ class CageDetail {
         return this.cage.currentBirds || 0;
     }
 
-    calculateDetailedMetrics() {
-        const logs = this.productionLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
-        const latestLog = logs[logs.length - 1];
+    async calculateDetailedMetrics() {
+        // Get all production logs for the entire cycle (all cages)
+        const allProductionLogs = await db.getByIndex('productionLogs', 'cycleId', this.cage.cycleId);
+        const allFeedLogs = await db.getByIndex('feedLogs', 'cycleId', this.cage.cycleId);
         
-        if (!latestLog) {
+        const logs = allProductionLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (logs.length === 0) {
             return {
                 ageInDays: 0,
                 ageInWeeks: 0,
-                closingBirds: this.cage.currentBirds || 0,
+                closingBirds: 0,
                 cumMortality: 0,
                 cumMortalityPercent: 0,
                 currentProductionPercent: 0,
-                cumProductionTrays: 0,
+                cumProductionEggs: 0,
                 henHouseProduction: 0,
                 currentFeedPerBird: 0,
                 cumFeedPerBird: 0,
@@ -523,49 +554,56 @@ class CageDetail {
             };
         }
 
-        const ageInDays = latestLog.flockAge || this.calculateFlockAge(latestLog.date);
+        // Calculate flock age from cycle start date
+        const ageInDays = this.calculateFlockAge(today);
         const ageInWeeks = Math.floor(ageInDays / 7);
         
-        // Calculate cumulative mortality
+        // Get all cages for this cycle to calculate total flock size
+        const allCages = await db.getByIndex('cages', 'cycleId', this.cage.cycleId);
+        const totalFlockSize = allCages.reduce((sum, cage) => sum + (cage.initialBirds || 0), 0);
+        const currentFlockSize = allCages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
+        
+        // Calculate cumulative mortality for entire flock
         const cumMortality = logs.reduce((sum, log) => sum + (log.mortality || 0), 0);
-        const initialBirds = logs[0]?.openingBirds || this.cage.currentBirds;
-        const cumMortalityPercent = initialBirds > 0 ? (cumMortality / initialBirds * 100) : 0;
+        const cumMortalityPercent = totalFlockSize > 0 ? (cumMortality / totalFlockSize * 100) : 0;
         
-        // Calculate production metrics
-        const cumProductionTrays = logs.reduce((sum, log) => sum + (log.eggsTrays || 0), 0);
-        const cumProductionEggs = cumProductionTrays * 30;
+        // Calculate production metrics for entire flock
+        const cumProductionEggs = logs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
         
-        // Current production percentage (latest day)
-        const currentProductionPercent = latestLog.openingBirds > 0 ? 
-            ((latestLog.eggsTrays * 30) / latestLog.openingBirds * 100) : 0;
+        // Current production percentage (today's total eggs vs current flock size)
+        const todayLogs = logs.filter(log => log.date === today);
+        const todayEggs = todayLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+        const currentProductionPercent = currentFlockSize > 0 ? (todayEggs / currentFlockSize * 100) : 0;
         
         // Hen house production (eggs per bird from 19th week - 133 days)
         const layingStartAge = 133; // 19 weeks
         const layingLogs = logs.filter(log => (log.flockAge || 0) >= layingStartAge);
-        const layingEggs = layingLogs.reduce((sum, log) => sum + ((log.eggsTrays || 0) * 30), 0);
-        const avgBirdsInLayingPeriod = layingLogs.length > 0 ? 
+        const layingEggs = layingLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+        const layingDays = layingLogs.length > 0 ? 
+            Math.max(1, Math.floor(layingLogs.length / allCages.length)) : 0;
+        const avgBirdsInLayingPeriod = layingDays > 0 ? 
             layingLogs.reduce((sum, log) => sum + (log.openingBirds || 0), 0) / layingLogs.length : 0;
         const henHouseProduction = avgBirdsInLayingPeriod > 0 ? layingEggs / avgBirdsInLayingPeriod : 0;
         
-        // Feed calculations
-        const cumFeed = this.feedLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
-        const currentFeedPerBird = latestLog.openingBirds > 0 ? 
-            (latestLog.currentFeed / latestLog.openingBirds) : 0;
-        const cumFeedPerBird = avgBirdsInLayingPeriod > 0 ? (cumFeed / avgBirdsInLayingPeriod) : 0;
+        // Feed calculations for entire flock
+        const cumFeed = allFeedLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
+        const todayFeed = allFeedLogs.filter(log => log.date === today)
+            .reduce((sum, log) => sum + (log.amount || 0), 0);
         
-        const currentFeedPerEgg = (latestLog.eggsTrays * 30) > 0 ? 
-            (latestLog.currentFeed * 1000) / (latestLog.eggsTrays * 30) : 0; // grams
-        const cumFeedPerEgg = cumProductionEggs > 0 ? 
-            (cumFeed * 1000) / cumProductionEggs : 0; // grams
+        const currentFeedPerBird = currentFlockSize > 0 ? (todayFeed / currentFlockSize) : 0;
+        const cumFeedPerBird = totalFlockSize > 0 ? (cumFeed / totalFlockSize) : 0;
+        
+        const currentFeedPerEgg = todayEggs > 0 ? (todayFeed * 1000) / todayEggs : 0; // grams
+        const cumFeedPerEgg = cumProductionEggs > 0 ? (cumFeed * 1000) / cumProductionEggs : 0; // grams
 
         return {
             ageInDays: ageInDays,
             ageInWeeks: ageInWeeks,
-            closingBirds: latestLog.closingBirds || latestLog.openingBirds,
+            closingBirds: currentFlockSize,
             cumMortality: cumMortality,
             cumMortalityPercent: cumMortalityPercent.toFixed(2),
             currentProductionPercent: currentProductionPercent.toFixed(1),
-            cumProductionTrays: cumProductionTrays.toFixed(1),
+            cumProductionEggs: cumProductionEggs,
             henHouseProduction: henHouseProduction.toFixed(1),
             currentFeedPerBird: currentFeedPerBird.toFixed(2),
             cumFeedPerBird: cumFeedPerBird.toFixed(2),
