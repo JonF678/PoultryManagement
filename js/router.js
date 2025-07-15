@@ -15,6 +15,11 @@ class Router {
                 title: 'Cage Details',
                 requiresParam: 'id'
             },
+            'cycle-feed': {
+                component: 'cycleFeedManager',
+                title: 'Cycle Feed & Birds',
+                requiresParam: 'cycleId'
+            },
             'analytics': {
                 component: 'analytics',
                 title: 'Analytics Dashboard'
@@ -183,6 +188,13 @@ class Router {
                         cageDetail.init(parseInt(params.id));
                     } else {
                         throw new Error('Cage ID required for cage detail');
+                    }
+                    break;
+                case 'cycleFeedManager':
+                    if (params.cycleId) {
+                        cycleFeedManager.init(parseInt(params.cycleId));
+                    } else {
+                        throw new Error('Cycle ID required for cycle feed manager');
                     }
                     break;
                 case 'analytics':

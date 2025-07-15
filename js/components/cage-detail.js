@@ -69,10 +69,24 @@ class CageDetail {
     renderProductionForm() {
         const today = new Date().toISOString().split('T')[0];
         const todayLog = this.productionLogs.find(log => log.date === today);
+        
+        // Auto-calculate flock age from cycle start date
+        const flockAge = this.calculateFlockAge(today);
+        
+        // Auto-calculate opening birds from previous day's closing stock
+        const openingBirds = this.getOpeningBirds(today);
 
         return `
             <div class="production-form">
-                <h5><i class="fas fa-plus-circle me-2"></i>Daily Production Entry</h5>
+                <h5><i class="fas fa-plus-circle me-2"></i>Daily Production Entry - ${this.cage.name}</h5>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Cage-Level Entry:</strong> Only mortality and eggs produced are recorded per cage. 
+                    Feed consumption and birds sold are tracked at the cycle level.
+                    <a href="#" onclick="router.navigate('cycle-feed', {cycleId: ${this.cage.cycleId}})" class="alert-link ms-2">
+                        <i class="fas fa-wheat-awn me-1"></i>Manage Feed & Birds Sold
+                    </a>
+                </div>
                 <form id="productionForm">
                     <div class="row">
                         <div class="col-md-4">
@@ -85,45 +99,34 @@ class CageDetail {
                             <div class="mb-3">
                                 <label for="flockAge" class="form-label">Flock Age (days)</label>
                                 <input type="number" class="form-control" id="flockAge" min="1" 
-                                       value="${todayLog?.flockAge || this.calculateFlockAge(today)}" required>
+                                       value="${flockAge}" readonly>
+                                <small class="text-muted">Auto-calculated from cycle start date</small>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="openingBirds" class="form-label">Opening Birds</label>
                                 <input type="number" class="form-control" id="openingBirds" min="0" 
-                                       value="${todayLog?.openingBirds || this.cage.currentBirds}" required>
+                                       value="${openingBirds}" readonly>
+                                <small class="text-muted">Auto-calculated from previous day</small>
                             </div>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="mortality" class="form-label">Mortality</label>
                                 <input type="number" class="form-control" id="mortality" min="0" 
                                        value="${todayLog?.mortality || ''}" required>
+                                <small class="text-muted">Number of birds that died</small>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="birdsSold" class="form-label">Birds Sold</label>
-                                <input type="number" class="form-control" id="birdsSold" min="0" 
-                                       value="${todayLog?.birdsSold || ''}">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="eggsProduced" class="form-label">Eggs Produced</label>
                                 <input type="number" class="form-control" id="eggsProduced" min="0" 
                                        value="${todayLog?.eggsProduced || ''}" required>
-                                <small class="text-muted">Number of eggs collected</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="currentFeed" class="form-label">Current Feed (kg)</label>
-                                <input type="number" class="form-control" id="currentFeed" step="0.1" min="0" 
-                                       value="${todayLog?.currentFeed || ''}">
+                                <small class="text-muted">Number of eggs collected from this cage</small>
                             </div>
                         </div>
                     </div>
@@ -132,7 +135,7 @@ class CageDetail {
                             <div class="mb-3">
                                 <label for="notes" class="form-label">Notes</label>
                                 <textarea class="form-control" id="notes" rows="2" 
-                                          placeholder="Any observations or notes...">${todayLog?.notes || ''}</textarea>
+                                          placeholder="Any observations or notes for this cage...">${todayLog?.notes || ''}</textarea>
                             </div>
                         </div>
                     </div>
@@ -410,22 +413,26 @@ class CageDetail {
     async handleProductionSubmit(event) {
         event.preventDefault();
         
+        const date = document.getElementById('logDate').value;
+        const flockAge = parseInt(document.getElementById('flockAge').value);
+        const openingBirds = parseInt(document.getElementById('openingBirds').value);
+        const mortality = parseInt(document.getElementById('mortality').value) || 0;
+        const eggsProduced = parseInt(document.getElementById('eggsProduced').value) || 0;
+        const notes = document.getElementById('notes').value;
+        
         const formData = {
             cageId: this.cage.id,
             cycleId: this.cage.cycleId,
-            date: document.getElementById('logDate').value,
-            flockAge: parseInt(document.getElementById('flockAge').value),
-            openingBirds: parseInt(document.getElementById('openingBirds').value),
-            mortality: parseInt(document.getElementById('mortality').value) || 0,
-            birdsSold: parseInt(document.getElementById('birdsSold').value) || 0,
-            eggsProduced: parseInt(document.getElementById('eggsProduced').value) || 0,
-            currentFeed: parseFloat(document.getElementById('currentFeed').value) || 0,
-            notes: document.getElementById('notes').value,
-            // Calculate derived values
-            eggsCollected: parseInt(document.getElementById('eggsProduced').value) || 0,
-            closingBirds: parseInt(document.getElementById('openingBirds').value) - 
-                         (parseInt(document.getElementById('mortality').value) || 0) - 
-                         (parseInt(document.getElementById('birdsSold').value) || 0),
+            date: date,
+            flockAge: flockAge,
+            openingBirds: openingBirds,
+            mortality: mortality,
+            birdsSold: 0, // Birds sold tracked at cycle level
+            eggsProduced: eggsProduced,
+            eggsCollected: eggsProduced,
+            closingBirds: openingBirds - mortality,
+            currentFeed: 0, // Feed tracked at cycle level
+            notes: notes,
             updatedAt: new Date().toISOString()
         };
 
@@ -440,27 +447,6 @@ class CageDetail {
             } else {
                 formData.createdAt = new Date().toISOString();
                 await db.add('productionLogs', formData);
-            }
-
-            // Handle feed log
-            if (formData.currentFeed > 0) {
-                const existingFeedLog = this.feedLogs.find(log => log.date === formData.date);
-                const feedData = {
-                    cageId: this.cage.id,
-                    cycleId: this.cage.cycleId,
-                    date: formData.date,
-                    amount: formData.currentFeed,
-                    updatedAt: new Date().toISOString()
-                };
-
-                if (existingFeedLog) {
-                    feedData.id = existingFeedLog.id;
-                    feedData.createdAt = existingFeedLog.createdAt;
-                    await db.update('feedLogs', feedData);
-                } else {
-                    feedData.createdAt = new Date().toISOString();
-                    await db.add('feedLogs', feedData);
-                }
             }
 
             // Update cage current birds count
@@ -496,6 +482,24 @@ class CageDetail {
         const currentDate = new Date(date);
         const diffTime = Math.abs(currentDate - startDate);
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    getOpeningBirds(date) {
+        // Get the previous day's closing birds
+        const currentDate = new Date(date);
+        const previousDate = new Date(currentDate);
+        previousDate.setDate(previousDate.getDate() - 1);
+        const previousDateStr = previousDate.toISOString().split('T')[0];
+        
+        // Find the previous day's log
+        const previousLog = this.productionLogs.find(log => log.date === previousDateStr);
+        
+        if (previousLog) {
+            return previousLog.closingBirds || previousLog.openingBirds;
+        }
+        
+        // If no previous log, use cage's current birds
+        return this.cage.currentBirds || 0;
     }
 
     calculateDetailedMetrics() {

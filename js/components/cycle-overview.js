@@ -120,13 +120,20 @@ class CycleOverview {
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary" onclick="event.stopPropagation(); router.navigate('cage-manager', {cycleId: ${cycle.id}})">
+                        <button class="btn btn-outline-primary" onclick="event.stopPropagation(); router.navigate('cage-manager', {cycleId: ${cycle.id}})" 
+                                title="Manage Cages">
                             <i class="fas fa-archive"></i>
                         </button>
-                        <button class="btn btn-outline-success" onclick="event.stopPropagation(); cycleOverview.viewCycleAnalytics(${cycle.id})">
+                        <button class="btn btn-outline-warning" onclick="event.stopPropagation(); router.navigate('cycle-feed', {cycleId: ${cycle.id}})" 
+                                title="Manage Feed & Birds Sold">
+                            <i class="fas fa-wheat-awn"></i>
+                        </button>
+                        <button class="btn btn-outline-success" onclick="event.stopPropagation(); cycleOverview.viewCycleAnalytics(${cycle.id})" 
+                                title="View Analytics">
                             <i class="fas fa-chart-line"></i>
                         </button>
-                        <button class="btn btn-outline-danger" onclick="event.stopPropagation(); cycleOverview.deleteCycle(${cycle.id})">
+                        <button class="btn btn-outline-danger" onclick="event.stopPropagation(); cycleOverview.deleteCycle(${cycle.id})" 
+                                title="Delete Cycle">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
