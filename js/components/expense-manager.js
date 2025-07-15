@@ -2,6 +2,8 @@ class ExpenseManager {
     constructor() {
         this.cycle = null;
         this.expenses = [];
+        this.allExpenses = [];
+        this.currentCategoryFilter = 'all';
     }
 
     getUserCurrency() {
@@ -22,8 +24,9 @@ class ExpenseManager {
 
     async init(cycleId) {
         this.cycle = await db.get('cycles', parseInt(cycleId));
-        this.expenses = await db.getByIndex('expenses', 'cycleId', parseInt(cycleId));
-        this.expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+        this.allExpenses = await db.getByIndex('expenses', 'cycleId', parseInt(cycleId));
+        this.allExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+        this.applyFilters();
         this.render();
     }
 
@@ -38,6 +41,31 @@ class ExpenseManager {
         `;
 
         document.getElementById('app-content').innerHTML = content;
+        
+        // Add event listeners
+        document.getElementById('expenseForm').addEventListener('submit', (e) => this.handleExpenseSubmit(e));
+        document.getElementById('categoryFilter').addEventListener('change', (e) => this.filterByCategory(e.target.value));
+    }
+
+    applyFilters() {
+        this.expenses = this.allExpenses.filter(expense => {
+            if (this.currentCategoryFilter === 'all') {
+                return true;
+            }
+            return expense.category === this.currentCategoryFilter;
+        });
+    }
+
+    filterByCategory(category) {
+        this.currentCategoryFilter = category;
+        this.applyFilters();
+        this.render();
+    }
+
+    clearFilters() {
+        this.currentCategoryFilter = 'all';
+        this.applyFilters();
+        this.render();
     }
 
     renderHeader() {
@@ -50,6 +78,46 @@ class ExpenseManager {
                 <button class="btn btn-outline-secondary" onclick="router.navigate('analytics', {cycleId: ${this.cycle?.id}})">
                     <i class="fas fa-arrow-left me-2"></i>Back to Analytics
                 </button>
+            </div>
+            
+            <!-- Filter Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <label for="categoryFilter" class="form-label">Filter by Category</label>
+                            <select class="form-select" id="categoryFilter">
+                                <option value="all" ${this.currentCategoryFilter === 'all' ? 'selected' : ''}>All Categories</option>
+                                <option value="feed" ${this.currentCategoryFilter === 'feed' ? 'selected' : ''}>Feed</option>
+                                <option value="medication" ${this.currentCategoryFilter === 'medication' ? 'selected' : ''}>Medication</option>
+                                <option value="vaccination" ${this.currentCategoryFilter === 'vaccination' ? 'selected' : ''}>Vaccination</option>
+                                <option value="labor" ${this.currentCategoryFilter === 'labor' ? 'selected' : ''}>Labor</option>
+                                <option value="utilities" ${this.currentCategoryFilter === 'utilities' ? 'selected' : ''}>Utilities</option>
+                                <option value="equipment" ${this.currentCategoryFilter === 'equipment' ? 'selected' : ''}>Equipment</option>
+                                <option value="transport" ${this.currentCategoryFilter === 'transport' ? 'selected' : ''}>Transport</option>
+                                <option value="maintenance" ${this.currentCategoryFilter === 'maintenance' ? 'selected' : ''}>Maintenance</option>
+                                <option value="other" ${this.currentCategoryFilter === 'other' ? 'selected' : ''}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-3 mt-4">
+                                <div class="text-center">
+                                    <div class="fw-bold text-primary">${this.expenses.length}</div>
+                                    <small class="text-muted">Records</small>
+                                </div>
+                                <div class="text-center">
+                                    <div class="fw-bold text-danger">${this.formatCurrency(this.expenses.reduce((sum, e) => sum + e.amount, 0))}</div>
+                                    <small class="text-muted">Total</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="expenseManager.clearFilters()">
+                                <i class="fas fa-times me-1"></i>Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     }

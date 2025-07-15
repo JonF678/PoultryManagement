@@ -146,6 +146,12 @@ Preferred communication style: Simple, everyday language.
   - **Consistent Display**: All financial amounts across sales, expenses, and analytics now use the selected currency
   - **Form Labels**: Dynamic currency symbols in all form labels for sales and expense entry
   - **Automatic Updates**: Currency preference automatically applies to all existing and new financial records
+- **Category Filtering System**: Enhanced sales and expense managers with comprehensive filtering functionality
+  - **Expense Category Filter**: Filter expenses by category (feed, labor, medication, vaccination, utilities, equipment, transport, maintenance, other)
+  - **Sales Type Filter**: Filter sales by type (all sales, egg sales only, bird sales only)
+  - **Real-time Statistics**: Filter results show filtered record count and total amounts
+  - **Clear Filters**: One-click filter clearing to return to all records view
+  - **Interactive UI**: Filter dropdowns with live updates and visual feedback
 
 ### July 11, 2025 - Comprehensive Documentation and CSV Export Enhancement
 - **Complete README**: Created comprehensive README.md with detailed explanations of every app feature

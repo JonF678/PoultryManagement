@@ -2,6 +2,8 @@ class SalesManager {
     constructor() {
         this.cycle = null;
         this.salesRecords = [];
+        this.allSalesRecords = [];
+        this.currentSaleTypeFilter = 'all';
     }
 
     getUserCurrency() {
@@ -22,8 +24,9 @@ class SalesManager {
 
     async init(cycleId) {
         this.cycle = await db.get('cycles', parseInt(cycleId));
-        this.salesRecords = await db.getByIndex('sales', 'cycleId', parseInt(cycleId));
-        this.salesRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+        this.allSalesRecords = await db.getByIndex('sales', 'cycleId', parseInt(cycleId));
+        this.allSalesRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+        this.applyFilters();
         this.render();
     }
 
@@ -50,6 +53,31 @@ class SalesManager {
         // Add automatic calculation for bird sales
         document.getElementById('birdsQuantity').addEventListener('input', this.calculateBirdTotal.bind(this));
         document.getElementById('pricePerBird').addEventListener('input', this.calculateBirdTotal.bind(this));
+        
+        // Add filter event listener
+        document.getElementById('salesTypeFilter').addEventListener('change', (e) => this.filterBySaleType(e.target.value));
+    }
+
+    applyFilters() {
+        this.salesRecords = this.allSalesRecords.filter(sale => {
+            const saleType = sale.saleType || 'eggs';
+            if (this.currentSaleTypeFilter === 'all') {
+                return true;
+            }
+            return saleType === this.currentSaleTypeFilter;
+        });
+    }
+
+    filterBySaleType(saleType) {
+        this.currentSaleTypeFilter = saleType;
+        this.applyFilters();
+        this.render();
+    }
+
+    clearFilters() {
+        this.currentSaleTypeFilter = 'all';
+        this.applyFilters();
+        this.render();
     }
 
     renderHeader() {
@@ -62,6 +90,39 @@ class SalesManager {
                 <button class="btn btn-outline-secondary" onclick="router.navigate('analytics', {cycleId: ${this.cycle?.id}})">
                     <i class="fas fa-arrow-left me-2"></i>Back to Analytics
                 </button>
+            </div>
+            
+            <!-- Filter Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <label for="salesTypeFilter" class="form-label">Filter by Sale Type</label>
+                            <select class="form-select" id="salesTypeFilter">
+                                <option value="all" ${this.currentSaleTypeFilter === 'all' ? 'selected' : ''}>All Sales</option>
+                                <option value="eggs" ${this.currentSaleTypeFilter === 'eggs' ? 'selected' : ''}>Egg Sales</option>
+                                <option value="birds" ${this.currentSaleTypeFilter === 'birds' ? 'selected' : ''}>Bird Sales</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-3 mt-4">
+                                <div class="text-center">
+                                    <div class="fw-bold text-primary">${this.salesRecords.length}</div>
+                                    <small class="text-muted">Records</small>
+                                </div>
+                                <div class="text-center">
+                                    <div class="fw-bold text-success">${this.formatCurrency(this.salesRecords.reduce((sum, s) => sum + (s.totalAmount || s.amount || 0), 0))}</div>
+                                    <small class="text-muted">Total</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="salesManager.clearFilters()">
+                                <i class="fas fa-times me-1"></i>Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     }
