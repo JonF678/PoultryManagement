@@ -140,6 +140,12 @@ Preferred communication style: Simple, everyday language.
   - **Comprehensive Dashboard**: Updated sales summary to show separate totals for egg sales and bird sales
   - **Unified Sales History**: Combined sales history table showing both egg and bird sales with type indicators
   - **Auto-Calculations**: Real-time calculation of total amounts for both sale types
+- **Currency Settings Enhancement**: Added comprehensive currency support for all financial records
+  - **User-Selectable Currency**: Settings now allow users to choose between Ghanaian Cedi (₵), US Dollar ($), and British Pound (£)
+  - **Default Currency**: Ghanaian Cedi set as default currency for all financial transactions
+  - **Consistent Display**: All financial amounts across sales, expenses, and analytics now use the selected currency
+  - **Form Labels**: Dynamic currency symbols in all form labels for sales and expense entry
+  - **Automatic Updates**: Currency preference automatically applies to all existing and new financial records
 
 ### July 11, 2025 - Comprehensive Documentation and CSV Export Enhancement
 - **Complete README**: Created comprehensive README.md with detailed explanations of every app feature

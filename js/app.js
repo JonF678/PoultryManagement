@@ -238,11 +238,23 @@ class PoultryApp {
         return new Date(date).toLocaleString();
     }
 
-    formatCurrency(amount, currency = 'GHS') {
-        return new Intl.NumberFormat('en-GH', {
-            style: 'currency',
-            currency: currency
-        }).format(amount);
+    formatCurrency(amount, currency = null) {
+        // Get user's preferred currency from settings, default to GHS
+        if (!currency) {
+            const settings = JSON.parse(localStorage.getItem('poultrySettings') || '{}');
+            currency = settings.currency || 'GHS';
+        }
+        
+        // Currency symbol mapping
+        const currencySymbols = {
+            'GHS': '₵',
+            'USD': '$',
+            'GBP': '£'
+        };
+        
+        // Use simple format with currency symbol for better compatibility
+        const symbol = currencySymbols[currency] || currency;
+        return `${symbol}${amount.toFixed(2)}`;
     }
 
     formatNumber(number, decimals = 0) {

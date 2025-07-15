@@ -254,10 +254,11 @@ class Router {
                                 <div class="mb-3">
                                     <label for="currency" class="form-label">Currency</label>
                                     <select class="form-select" id="currency">
-                                        <option value="USD">USD ($)</option>
-                                        <option value="EUR">EUR (€)</option>
-                                        <option value="GBP">GBP (£)</option>
+                                        <option value="GHS">Ghanaian Cedi (₵)</option>
+                                        <option value="USD">US Dollar ($)</option>
+                                        <option value="GBP">British Pound (£)</option>
                                     </select>
+                                    <small class="text-muted">This will be used for all financial records in the app (sales, expenses, etc.)</small>
                                 </div>
                                 <div class="form-check mb-3">
                                     <input class="form-check-input" type="checkbox" id="enableNotifications" checked>
@@ -329,9 +330,9 @@ class Router {
         if (settings.defaultEggWeight) {
             document.getElementById('defaultEggWeight').value = settings.defaultEggWeight;
         }
-        if (settings.currency) {
-            document.getElementById('currency').value = settings.currency;
-        }
+        // Set currency with GHS as default
+        document.getElementById('currency').value = settings.currency || 'GHS';
+        
         if (settings.enableNotifications !== undefined) {
             document.getElementById('enableNotifications').checked = settings.enableNotifications;
         }

@@ -4,6 +4,22 @@ class ExpenseManager {
         this.expenses = [];
     }
 
+    getUserCurrency() {
+        const settings = JSON.parse(localStorage.getItem('poultrySettings') || '{}');
+        return settings.currency || 'GHS';
+    }
+
+    formatCurrency(amount) {
+        const currency = this.getUserCurrency();
+        const currencySymbols = {
+            'GHS': '₵',
+            'USD': '$',
+            'GBP': '£'
+        };
+        const symbol = currencySymbols[currency] || currency;
+        return `${symbol}${amount.toFixed(2)}`;
+    }
+
     async init(cycleId) {
         this.cycle = await db.get('cycles', parseInt(cycleId));
         this.expenses = await db.getByIndex('expenses', 'cycleId', parseInt(cycleId));
@@ -74,7 +90,7 @@ class ExpenseManager {
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
-                                    <label for="expenseAmount" class="form-label">Amount</label>
+                                    <label for="expenseAmount" class="form-label">Amount (${this.getUserCurrency() === 'GHS' ? '₵' : this.getUserCurrency() === 'USD' ? '$' : '£'})</label>
                                     <input type="number" class="form-control" id="expenseAmount" step="0.01" min="0" required>
                                 </div>
                             </div>
@@ -139,7 +155,7 @@ class ExpenseManager {
                 <div class="col-md-3">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-danger">$${totalExpenses.toFixed(2)}</div>
+                            <div class="stats-value text-danger">${this.formatCurrency(totalExpenses)}</div>
                             <div class="stats-label">Total Expenses</div>
                         </div>
                     </div>
@@ -155,7 +171,7 @@ class ExpenseManager {
                 <div class="col-md-3">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-warning">$${avgExpensePerDay.toFixed(2)}</div>
+                            <div class="stats-value text-warning">${this.formatCurrency(avgExpensePerDay)}</div>
                             <div class="stats-label">Avg per Entry</div>
                         </div>
                     </div>
@@ -226,7 +242,7 @@ class ExpenseManager {
                     <strong>${expense.description}</strong>
                     ${expense.quantity ? `<br><small class="text-muted">${expense.quantity} ${expense.unit || ''}</small>` : ''}
                 </td>
-                <td><strong>$${expense.amount.toFixed(2)}</strong></td>
+                <td><strong>${this.formatCurrency(expense.amount)}</strong></td>
                 <td>${expense.supplier || '-'}</td>
                 <td>
                     <div class="btn-group btn-group-sm">

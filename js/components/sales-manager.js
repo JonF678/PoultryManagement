@@ -4,6 +4,22 @@ class SalesManager {
         this.salesRecords = [];
     }
 
+    getUserCurrency() {
+        const settings = JSON.parse(localStorage.getItem('poultrySettings') || '{}');
+        return settings.currency || 'GHS';
+    }
+
+    formatCurrency(amount) {
+        const currency = this.getUserCurrency();
+        const currencySymbols = {
+            'GHS': '₵',
+            'USD': '$',
+            'GBP': '£'
+        };
+        const symbol = currencySymbols[currency] || currency;
+        return `${symbol}${amount.toFixed(2)}`;
+    }
+
     async init(cycleId) {
         this.cycle = await db.get('cycles', parseInt(cycleId));
         this.salesRecords = await db.getByIndex('sales', 'cycleId', parseInt(cycleId));
@@ -99,7 +115,7 @@ class SalesManager {
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label for="pricePerCrate" class="form-label">Price per Crate (₵)</label>
+                                            <label for="pricePerCrate" class="form-label">Price per Crate (${this.getUserCurrency() === 'GHS' ? '₵' : this.getUserCurrency() === 'USD' ? '$' : '£'})</label>
                                             <input type="number" class="form-control" id="pricePerCrate" step="0.01" min="0" required>
                                         </div>
                                     </div>
@@ -126,7 +142,7 @@ class SalesManager {
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="eggTotalAmount" class="form-label">Total Amount (₵)</label>
+                                            <label for="eggTotalAmount" class="form-label">Total Amount (${this.getUserCurrency() === 'GHS' ? '₵' : this.getUserCurrency() === 'USD' ? '$' : '£'})</label>
                                             <input type="number" class="form-control" id="eggTotalAmount" step="0.01" readonly>
                                         </div>
                                     </div>
@@ -169,7 +185,7 @@ class SalesManager {
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label for="pricePerBird" class="form-label">Price per Bird (₵)</label>
+                                            <label for="pricePerBird" class="form-label">Price per Bird (${this.getUserCurrency() === 'GHS' ? '₵' : this.getUserCurrency() === 'USD' ? '$' : '£'})</label>
                                             <input type="number" class="form-control" id="pricePerBird" step="0.01" min="0" required>
                                         </div>
                                     </div>
@@ -197,7 +213,7 @@ class SalesManager {
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label for="birdTotalAmount" class="form-label">Total Amount (₵)</label>
+                                            <label for="birdTotalAmount" class="form-label">Total Amount (${this.getUserCurrency() === 'GHS' ? '₵' : this.getUserCurrency() === 'USD' ? '$' : '£'})</label>
                                             <input type="number" class="form-control" id="birdTotalAmount" step="0.01" readonly>
                                         </div>
                                     </div>
@@ -242,7 +258,7 @@ class SalesManager {
                 <div class="col-md-2">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-success">₵${totalSales.toFixed(2)}</div>
+                            <div class="stats-value text-success">${this.formatCurrency(totalSales)}</div>
                             <div class="stats-label">Total Sales</div>
                         </div>
                     </div>
@@ -250,7 +266,7 @@ class SalesManager {
                 <div class="col-md-2">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-primary">₵${totalEggSales.toFixed(2)}</div>
+                            <div class="stats-value text-primary">${this.formatCurrency(totalEggSales)}</div>
                             <div class="stats-label">Egg Sales</div>
                         </div>
                     </div>
@@ -258,7 +274,7 @@ class SalesManager {
                 <div class="col-md-2">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-warning">₵${totalBirdSales.toFixed(2)}</div>
+                            <div class="stats-value text-warning">${this.formatCurrency(totalBirdSales)}</div>
                             <div class="stats-label">Bird Sales</div>
                         </div>
                     </div>
@@ -340,7 +356,7 @@ class SalesManager {
         const saleType = sale.saleType || 'eggs';
         const typeIcon = saleType === 'birds' ? '<i class="fas fa-dove text-warning"></i>' : '<i class="fas fa-egg text-primary"></i>';
         const quantity = saleType === 'birds' ? `${sale.birdsQuantity} birds` : `${sale.crates || sale.cratesQuantity} crates`;
-        const unitPrice = saleType === 'birds' ? `₵${(sale.pricePerBird || 0).toFixed(2)}` : `₵${(sale.pricePerCrate || 0).toFixed(2)}`;
+        const unitPrice = saleType === 'birds' ? this.formatCurrency(sale.pricePerBird || 0) : this.formatCurrency(sale.pricePerCrate || 0);
         
         return `
             <tr>
@@ -349,7 +365,7 @@ class SalesManager {
                 <td><strong>${sale.customer || sale.customerName}</strong></td>
                 <td>${quantity}</td>
                 <td>${unitPrice}</td>
-                <td><strong>₵${(sale.totalAmount || sale.amount || 0).toFixed(2)}</strong></td>
+                <td><strong>${this.formatCurrency(sale.totalAmount || sale.amount || 0)}</strong></td>
                 <td>
                     <span class="badge ${this.getPaymentBadgeClass(sale.paymentMethod)}">${sale.paymentMethod}</span>
                 </td>
