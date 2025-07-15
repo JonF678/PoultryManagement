@@ -22,6 +22,18 @@ class SalesManager {
         `;
 
         document.getElementById('app-content').innerHTML = content;
+        
+        // Add event listeners for form submissions
+        document.getElementById('eggSalesForm').addEventListener('submit', (e) => this.handleEggSalesSubmit(e));
+        document.getElementById('birdSalesForm').addEventListener('submit', (e) => this.handleBirdSalesSubmit(e));
+        
+        // Add automatic calculation for egg sales
+        document.getElementById('cratesQuantity').addEventListener('input', this.calculateEggTotal.bind(this));
+        document.getElementById('pricePerCrate').addEventListener('input', this.calculateEggTotal.bind(this));
+        
+        // Add automatic calculation for bird sales
+        document.getElementById('birdsQuantity').addEventListener('input', this.calculateBirdTotal.bind(this));
+        document.getElementById('pricePerBird').addEventListener('input', this.calculateBirdTotal.bind(this));
     }
 
     renderHeader() {
@@ -44,88 +56,190 @@ class SalesManager {
         return `
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Record Egg Sales</h5>
+                    <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Record Sales</h5>
                 </div>
                 <div class="card-body">
-                    <form id="salesForm">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="saleDate" class="form-label">Date</label>
-                                    <input type="date" class="form-control" id="saleDate" value="${today}" required>
+                    <!-- Sales Type Tabs -->
+                    <ul class="nav nav-tabs" id="salesTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="egg-sales-tab" data-bs-toggle="tab" data-bs-target="#egg-sales" type="button" role="tab">
+                                <i class="fas fa-egg me-2"></i>Egg Sales
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="bird-sales-tab" data-bs-toggle="tab" data-bs-target="#bird-sales" type="button" role="tab">
+                                <i class="fas fa-dove me-2"></i>Birds Sold
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content mt-3" id="salesTabContent">
+                        <!-- Egg Sales Tab -->
+                        <div class="tab-pane fade show active" id="egg-sales" role="tabpanel">
+                            <form id="eggSalesForm">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="eggSaleDate" class="form-label">Date</label>
+                                            <input type="date" class="form-control" id="eggSaleDate" value="${today}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="eggCustomerName" class="form-label">Customer Name</label>
+                                            <input type="text" class="form-control" id="eggCustomerName" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="cratesQuantity" class="form-label">Crates Sold</label>
+                                            <input type="number" class="form-control" id="cratesQuantity" min="1" step="0.1" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="pricePerCrate" class="form-label">Price per Crate (₵)</label>
+                                            <input type="number" class="form-control" id="pricePerCrate" step="0.01" min="0" required>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="customerName" class="form-label">Customer Name</label>
-                                    <input type="text" class="form-control" id="customerName" required>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="eggsPerCrate" class="form-label">Eggs per Crate</label>
+                                            <input type="number" class="form-control" id="eggsPerCrate" value="30" min="1" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="eggPaymentMethod" class="form-label">Payment Method</label>
+                                            <select class="form-select" id="eggPaymentMethod" required>
+                                                <option value="">Select method...</option>
+                                                <option value="cash">Cash</option>
+                                                <option value="mobile_money">Mobile Money</option>
+                                                <option value="bank">Bank Transfer</option>
+                                                <option value="check">Check</option>
+                                                <option value="credit">Credit</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="eggTotalAmount" class="form-label">Total Amount (₵)</label>
+                                            <input type="number" class="form-control" id="eggTotalAmount" step="0.01" readonly>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="cratesQuantity" class="form-label">Crates Sold</label>
-                                    <input type="number" class="form-control" id="cratesQuantity" min="1" step="0.1" required>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="eggSalesNotes" class="form-label">Notes</label>
+                                            <textarea class="form-control" id="eggSalesNotes" rows="2"></textarea>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="mb-3">
-                                    <label for="pricePerCrate" class="form-label">Price per Crate</label>
-                                    <input type="number" class="form-control" id="pricePerCrate" step="0.01" min="0" required>
-                                </div>
-                            </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Record Egg Sale
+                                </button>
+                            </form>
                         </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="eggsPerCrate" class="form-label">Eggs per Crate</label>
-                                    <input type="number" class="form-control" id="eggsPerCrate" value="30" min="1" required>
+
+                        <!-- Birds Sold Tab -->
+                        <div class="tab-pane fade" id="bird-sales" role="tabpanel">
+                            <form id="birdSalesForm">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="birdSaleDate" class="form-label">Date</label>
+                                            <input type="date" class="form-control" id="birdSaleDate" value="${today}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="birdCustomerName" class="form-label">Customer Name</label>
+                                            <input type="text" class="form-control" id="birdCustomerName" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="birdsQuantity" class="form-label">Number of Birds</label>
+                                            <input type="number" class="form-control" id="birdsQuantity" min="1" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label for="pricePerBird" class="form-label">Price per Bird (₵)</label>
+                                            <input type="number" class="form-control" id="pricePerBird" step="0.01" min="0" required>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="paymentMethod" class="form-label">Payment Method</label>
-                                    <select class="form-select" id="paymentMethod" required>
-                                        <option value="">Select method...</option>
-                                        <option value="cash">Cash</option>
-                                        <option value="bank">Bank Transfer</option>
-                                        <option value="check">Check</option>
-                                        <option value="credit">Credit</option>
-                                    </select>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="birdWeight" class="form-label">Average Weight (kg)</label>
+                                            <input type="number" class="form-control" id="birdWeight" step="0.1" min="0">
+                                            <small class="text-muted">Optional: Average weight per bird</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="birdPaymentMethod" class="form-label">Payment Method</label>
+                                            <select class="form-select" id="birdPaymentMethod" required>
+                                                <option value="">Select method...</option>
+                                                <option value="cash">Cash</option>
+                                                <option value="mobile_money">Mobile Money</option>
+                                                <option value="bank">Bank Transfer</option>
+                                                <option value="check">Check</option>
+                                                <option value="credit">Credit</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="birdTotalAmount" class="form-label">Total Amount (₵)</label>
+                                            <input type="number" class="form-control" id="birdTotalAmount" step="0.01" readonly>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="totalAmount" class="form-label">Total Amount</label>
-                                    <input type="number" class="form-control" id="totalAmount" step="0.01" readonly>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="birdSalesNotes" class="form-label">Notes</label>
+                                            <textarea class="form-control" id="birdSalesNotes" rows="2" placeholder="Reason for sale, breed, condition, etc."></textarea>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-2"></i>Record Bird Sale
+                                </button>
+                            </form>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="mb-3">
-                                    <label for="salesNotes" class="form-label">Notes</label>
-                                    <textarea class="form-control" id="salesNotes" rows="2"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i>Record Sale
-                        </button>
-                    </form>
+                    </div>
                 </div>
             </div>
         `;
     }
 
     renderSalesSummary() {
-        const totalSales = this.salesRecords.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
-        const totalCrates = this.salesRecords.reduce((sum, sale) => sum + (sale.cratesQuantity || 0), 0);
-        const totalEggsSold = this.salesRecords.reduce((sum, sale) => sum + (sale.totalEggs || 0), 0);
-        const avgPricePerCrate = totalCrates > 0 ? totalSales / totalCrates : 0;
+        // Separate egg sales and bird sales
+        const eggSales = this.salesRecords.filter(sale => sale.saleType === 'eggs' || !sale.saleType);
+        const birdSales = this.salesRecords.filter(sale => sale.saleType === 'birds');
+        
+        const totalEggSales = eggSales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
+        const totalBirdSales = birdSales.reduce((sum, sale) => sum + (sale.totalAmount || 0), 0);
+        const totalSales = totalEggSales + totalBirdSales;
+        
+        const totalCrates = eggSales.reduce((sum, sale) => sum + (sale.cratesQuantity || 0), 0);
+        const totalEggsSold = eggSales.reduce((sum, sale) => sum + (sale.totalEggs || 0), 0);
+        const totalBirdsSold = birdSales.reduce((sum, sale) => sum + (sale.birdsQuantity || 0), 0);
+        
+        const avgPricePerCrate = totalCrates > 0 ? totalEggSales / totalCrates : 0;
+        const avgPricePerBird = totalBirdsSold > 0 ? totalBirdSales / totalBirdsSold : 0;
 
         return `
             <div class="row mb-4">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card stats-card">
                         <div class="card-body text-center">
                             <div class="stats-value text-success">₵${totalSales.toFixed(2)}</div>
@@ -133,27 +247,43 @@ class SalesManager {
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-primary">${totalCrates.toFixed(1)}</div>
+                            <div class="stats-value text-primary">₵${totalEggSales.toFixed(2)}</div>
+                            <div class="stats-label">Egg Sales</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <div class="stats-value text-warning">₵${totalBirdSales.toFixed(2)}</div>
+                            <div class="stats-label">Bird Sales</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card stats-card">
+                        <div class="card-body text-center">
+                            <div class="stats-value text-info">${totalCrates.toFixed(1)}</div>
                             <div class="stats-label">Crates Sold</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-info">${totalEggsSold.toLocaleString()}</div>
-                            <div class="stats-label">Eggs Sold</div>
+                            <div class="stats-value text-info">${totalBirdsSold.toLocaleString()}</div>
+                            <div class="stats-label">Birds Sold</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card stats-card">
                         <div class="card-body text-center">
-                            <div class="stats-value text-warning">₵${avgPricePerCrate.toFixed(2)}</div>
-                            <div class="stats-label">Avg Price/Crate</div>
+                            <div class="stats-value text-secondary">${this.salesRecords.length}</div>
+                            <div class="stats-label">Total Records</div>
                         </div>
                     </div>
                 </div>
@@ -169,7 +299,7 @@ class SalesManager {
                         <div class="empty-state">
                             <i class="fas fa-shopping-cart"></i>
                             <h4>No Sales Records</h4>
-                            <p>Start recording your egg sales to track revenue.</p>
+                            <p>Start recording your egg and bird sales to track revenue.</p>
                         </div>
                     </div>
                 </div>
@@ -187,9 +317,10 @@ class SalesManager {
                             <thead>
                                 <tr>
                                     <th>Date</th>
+                                    <th>Type</th>
                                     <th>Customer</th>
-                                    <th>Crates</th>
-                                    <th>Price/Crate</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
                                     <th>Total Amount</th>
                                     <th>Payment</th>
                                     <th>Actions</th>
@@ -206,13 +337,19 @@ class SalesManager {
     }
 
     renderSalesRow(sale) {
+        const saleType = sale.saleType || 'eggs';
+        const typeIcon = saleType === 'birds' ? '<i class="fas fa-dove text-warning"></i>' : '<i class="fas fa-egg text-primary"></i>';
+        const quantity = saleType === 'birds' ? `${sale.birdsQuantity} birds` : `${sale.crates || sale.cratesQuantity} crates`;
+        const unitPrice = saleType === 'birds' ? `₵${(sale.pricePerBird || 0).toFixed(2)}` : `₵${(sale.pricePerCrate || 0).toFixed(2)}`;
+        
         return `
             <tr>
                 <td>${new Date(sale.date).toLocaleDateString()}</td>
+                <td>${typeIcon} ${saleType.charAt(0).toUpperCase() + saleType.slice(1)}</td>
                 <td><strong>${sale.customer || sale.customerName}</strong></td>
-                <td>${sale.crates || sale.cratesQuantity}</td>
-                <td>₵${sale.pricePerCrate.toFixed(2)}</td>
-                <td><strong>₵${sale.amount.toFixed(2)}</strong></td>
+                <td>${quantity}</td>
+                <td>${unitPrice}</td>
+                <td><strong>₵${(sale.totalAmount || sale.amount || 0).toFixed(2)}</strong></td>
                 <td>
                     <span class="badge ${this.getPaymentBadgeClass(sale.paymentMethod)}">${sale.paymentMethod}</span>
                 </td>
@@ -230,6 +367,7 @@ class SalesManager {
     getPaymentBadgeClass(method) {
         const classes = {
             'cash': 'bg-success',
+            'mobile_money': 'bg-info',
             'bank': 'bg-primary',
             'check': 'bg-info',
             'credit': 'bg-warning'
@@ -237,39 +375,95 @@ class SalesManager {
         return classes[method] || 'bg-secondary';
     }
 
-    async handleSalesSubmit(event) {
+    async handleEggSalesSubmit(event) {
         event.preventDefault();
 
         const crates = parseFloat(document.getElementById('cratesQuantity').value);
         const pricePerCrate = parseFloat(document.getElementById('pricePerCrate').value);
-        const amount = crates * pricePerCrate;
+        const eggsPerCrate = parseInt(document.getElementById('eggsPerCrate').value);
+        const totalAmount = crates * pricePerCrate;
+        const totalEggs = crates * eggsPerCrate;
         
         const formData = {
             cycleId: this.cycle.id,
-            date: document.getElementById('saleDate').value,
-            customer: document.getElementById('customerName').value,
-            crates: crates,
+            saleType: 'eggs',
+            date: document.getElementById('eggSaleDate').value,
+            customerName: document.getElementById('eggCustomerName').value,
+            cratesQuantity: crates,
             pricePerCrate: pricePerCrate,
-            amount: amount,
-            paymentMethod: document.getElementById('paymentMethod').value,
-            notes: document.getElementById('salesNotes').value,
+            eggsPerCrate: eggsPerCrate,
+            totalEggs: totalEggs,
+            totalAmount: totalAmount,
+            paymentMethod: document.getElementById('eggPaymentMethod').value,
+            notes: document.getElementById('eggSalesNotes').value,
             createdAt: new Date().toISOString()
         };
 
         try {
             await db.add('sales', formData);
-            this.showToast('Sale recorded successfully!', 'success');
+            this.showToast('Egg sale recorded successfully!', 'success');
             
             // Reset form
-            document.getElementById('salesForm').reset();
-            document.getElementById('saleDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('eggSalesForm').reset();
+            document.getElementById('eggSaleDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('eggsPerCrate').value = 30;
             
             await this.init(this.cycle.id); // Refresh the view
         } catch (error) {
-            console.error('Error recording sale:', error);
-            this.showToast('Error recording sale. Please try again.', 'error');
+            console.error('Error recording egg sale:', error);
+            this.showToast('Error recording egg sale. Please try again.', 'error');
         }
+    }
+
+    async handleBirdSalesSubmit(event) {
+        event.preventDefault();
+
+        const birdsQuantity = parseInt(document.getElementById('birdsQuantity').value);
+        const pricePerBird = parseFloat(document.getElementById('pricePerBird').value);
+        const totalAmount = birdsQuantity * pricePerBird;
+        const birdWeight = parseFloat(document.getElementById('birdWeight').value) || 0;
+        
+        const formData = {
+            cycleId: this.cycle.id,
+            saleType: 'birds',
+            date: document.getElementById('birdSaleDate').value,
+            customerName: document.getElementById('birdCustomerName').value,
+            birdsQuantity: birdsQuantity,
+            pricePerBird: pricePerBird,
+            birdWeight: birdWeight,
+            totalAmount: totalAmount,
+            paymentMethod: document.getElementById('birdPaymentMethod').value,
+            notes: document.getElementById('birdSalesNotes').value,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            await db.add('sales', formData);
+            this.showToast('Bird sale recorded successfully!', 'success');
+            
+            // Reset form
+            document.getElementById('birdSalesForm').reset();
+            document.getElementById('birdSaleDate').value = new Date().toISOString().split('T')[0];
+            
+            await this.init(this.cycle.id); // Refresh the view
+        } catch (error) {
+            console.error('Error recording bird sale:', error);
+            this.showToast('Error recording bird sale. Please try again.', 'error');
+        }
+    }
+
+    calculateEggTotal() {
+        const crates = parseFloat(document.getElementById('cratesQuantity').value) || 0;
+        const pricePerCrate = parseFloat(document.getElementById('pricePerCrate').value) || 0;
+        const total = crates * pricePerCrate;
+        document.getElementById('eggTotalAmount').value = total.toFixed(2);
+    }
+
+    calculateBirdTotal() {
+        const birds = parseInt(document.getElementById('birdsQuantity').value) || 0;
+        const pricePerBird = parseFloat(document.getElementById('pricePerBird').value) || 0;
+        const total = birds * pricePerBird;
+        document.getElementById('birdTotalAmount').value = total.toFixed(2);
     }
 
     async deleteSale(saleId) {
@@ -287,12 +481,7 @@ class SalesManager {
         }
     }
 
-    calculateTotal() {
-        const crates = parseFloat(document.getElementById('cratesQuantity').value) || 0;
-        const pricePerCrate = parseFloat(document.getElementById('pricePerCrate').value) || 0;
-        const total = crates * pricePerCrate;
-        document.getElementById('totalAmount').value = total.toFixed(2);
-    }
+
 
     showToast(message, type = 'info') {
         const toast = document.getElementById('toast');
@@ -313,17 +502,4 @@ class SalesManager {
 // Global sales manager instance
 const salesManager = new SalesManager();
 
-// Event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    document.addEventListener('submit', (e) => {
-        if (e.target.id === 'salesForm') {
-            salesManager.handleSalesSubmit(e);
-        }
-    });
-
-    document.addEventListener('input', (e) => {
-        if (e.target.id === 'cratesQuantity' || e.target.id === 'pricePerCrate') {
-            salesManager.calculateTotal();
-        }
-    });
-});
+// Event listeners are now handled within the render method for better component isolation

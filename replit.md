@@ -134,6 +134,12 @@ Preferred communication style: Simple, everyday language.
 - **Enhanced Navigation**: Added feed management button to cycle overview and cage detail pages
 - **Database Schema**: Updated to support cycle-level feed and birds sold tracking
 - **User Interface**: Clear separation between cage-level and cycle-level data entry with informational alerts
+- **Birds Sold Income Tracking**: Enhanced sales manager with dual-tab system for tracking both egg sales and birds sold as income
+  - **Egg Sales Tab**: Traditional egg sales tracking with crates, price per crate, and total amount
+  - **Bird Sales Tab**: New bird sales tracking with bird quantity, price per bird, weight, and total amount
+  - **Comprehensive Dashboard**: Updated sales summary to show separate totals for egg sales and bird sales
+  - **Unified Sales History**: Combined sales history table showing both egg and bird sales with type indicators
+  - **Auto-Calculations**: Real-time calculation of total amounts for both sale types
 
 ### July 11, 2025 - Comprehensive Documentation and CSV Export Enhancement
 - **Complete README**: Created comprehensive README.md with detailed explanations of every app feature
