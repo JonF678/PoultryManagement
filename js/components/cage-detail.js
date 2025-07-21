@@ -40,8 +40,13 @@ class CageDetail {
         `;
 
         document.getElementById('app-content').innerHTML = content;
-        this.renderCharts();
         this.loadMetrics();
+        
+        // Load the actual charts after a small delay to ensure DOM is ready
+        setTimeout(() => {
+            this.renderProductionChart();
+            this.renderPerformanceChart();
+        }, 200);
     }
 
     async loadMetrics() {
@@ -363,7 +368,18 @@ class CageDetail {
     }
 
     async renderProductionChart() {
-        const recentLogs = this.productionLogs.slice(0, 30).reverse();
+        if (this.productionLogs.length === 0) {
+            document.getElementById('productionChart').parentElement.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <p>No production data available yet.</p>
+                    <small>Start logging daily production to see trends.</small>
+                </div>
+            `;
+            return;
+        }
+
+        const recentLogs = this.productionLogs.slice(-30); // Last 30 entries
         
         const chartData = {
             labels: recentLogs.map(log => new Date(log.date).toLocaleDateString()),
@@ -397,28 +413,88 @@ class CageDetail {
     }
 
     async renderPerformanceChart() {
+        if (this.productionLogs.length === 0) {
+            document.getElementById('performanceChart').parentElement.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                    <p>No performance data available yet.</p>
+                    <small>Start logging production to see performance overview.</small>
+                </div>
+            `;
+            return;
+        }
+
         const totalEggs = this.productionLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
         const avgLayingRate = this.productionLogs.length ? 
             this.productionLogs.reduce((sum, log) => 
                 sum + Calculations.calculateLayingPercentage(log.eggsCollected || 0, this.cage.currentBirds), 0
             ) / this.productionLogs.length : 0;
 
-        const performanceLevel = avgLayingRate > 80 ? 'Excellent' : 
-                               avgLayingRate > 60 ? 'Good' : 
-                               avgLayingRate > 40 ? 'Average' : 'Below Average';
+        // Calculate performance metrics for the doughnut chart
+        const excellent = avgLayingRate > 80 ? avgLayingRate : 0;
+        const good = avgLayingRate > 60 && avgLayingRate <= 80 ? avgLayingRate : 0;
+        const average = avgLayingRate > 40 && avgLayingRate <= 60 ? avgLayingRate : 0;
+        const belowAvg = avgLayingRate <= 40 ? avgLayingRate : 0;
 
         const chartData = {
-            labels: ['Excellent', 'Good', 'Average', 'Below Average'],
-            values: [
-                performanceLevel === 'Excellent' ? 1 : 0,
-                performanceLevel === 'Good' ? 1 : 0,
-                performanceLevel === 'Average' ? 1 : 0,
-                performanceLevel === 'Below Average' ? 1 : 0
-            ]
+            labels: ['Performance Rating'],
+            datasets: [{
+                label: 'Performance Level',
+                data: [avgLayingRate, 100 - avgLayingRate],
+                backgroundColor: [
+                    avgLayingRate > 80 ? '#10b981' : 
+                    avgLayingRate > 60 ? '#f59e0b' : 
+                    avgLayingRate > 40 ? '#f97316' : '#ef4444',
+                    '#e5e7eb'
+                ],
+                borderWidth: 0
+            }]
         };
 
         setTimeout(() => {
-            chartManager.createDoughnutChart('performanceChart', chartData);
+            chartManager.createDoughnutChart('performanceChart', chartData, {
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Laying Rate: ${avgLayingRate.toFixed(1)}%`;
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Add performance text overlay
+            const canvas = document.getElementById('performanceChart');
+            const container = canvas.parentElement;
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                pointer-events: none;
+            `;
+            overlay.innerHTML = `
+                <div style="font-size: 18px; font-weight: bold; color: ${
+                    avgLayingRate > 80 ? '#10b981' : 
+                    avgLayingRate > 60 ? '#f59e0b' : 
+                    avgLayingRate > 40 ? '#f97316' : '#ef4444'
+                }">
+                    ${avgLayingRate.toFixed(1)}%
+                </div>
+                <div style="font-size: 12px; color: #6b7280;">
+                    ${avgLayingRate > 80 ? 'Excellent' : 
+                      avgLayingRate > 60 ? 'Good' : 
+                      avgLayingRate > 40 ? 'Average' : 'Below Average'}
+                </div>
+            `;
+            container.style.position = 'relative';
+            container.appendChild(overlay);
         }, 100);
     }
 
