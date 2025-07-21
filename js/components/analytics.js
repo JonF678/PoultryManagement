@@ -9,6 +9,7 @@ class Analytics {
         this.expenses = [];
         this.currentFilter = 'all';
         this.dateRange = 30; // days
+        this.metricType = 'feed'; // Default metric type
     }
 
     async init(cycleId = null) {
@@ -131,7 +132,7 @@ class Analytics {
                             <select class="form-select" id="metricType" onchange="analytics.updateMetricType(this.value)">
                                 <option value="production">Egg Production</option>
                                 <option value="efficiency">Laying Efficiency</option>
-                                <option value="feed">Feed Consumption</option>
+                                <option value="feed" selected>Feed Consumption</option>
                                 <option value="mortality">Mortality Rate</option>
                                 <option value="profit">Profit Analysis</option>
                             </select>
@@ -196,7 +197,7 @@ class Analytics {
                 <div class="col-lg-8">
                     <div class="card">
                         <div class="card-header">
-                            <h6 class="mb-0">Production Trends</h6>
+                            <h6 class="mb-0" id="main-chart-title">Production Trends</h6>
                         </div>
                         <div class="card-body">
                             <div class="chart-container">
@@ -354,10 +355,53 @@ class Analytics {
     }
 
     loadCharts() {
-        this.loadProductionTrendChart();
+        // Update the selected value in the dropdown
+        const metricSelect = document.getElementById('metricType');
+        if (metricSelect) {
+            metricSelect.value = this.metricType;
+        }
+
+        // Load the main trend chart based on selected metric
+        this.loadMetricBasedChart();
+        
+        // Always load cage performance chart
         this.loadCagePerformanceChart();
-        this.loadFeedChart();
-        this.loadEfficiencyChart();
+    }
+
+    loadMetricBasedChart() {
+        // Update chart title based on metric type
+        const chartTitles = {
+            'production': 'Egg Production Trends',
+            'efficiency': 'Laying Efficiency Trends',
+            'feed': 'Feed Consumption Trends',
+            'mortality': 'Mortality Trends',
+            'profit': 'Profit Analysis'
+        };
+        
+        const titleElement = document.getElementById('main-chart-title');
+        if (titleElement) {
+            titleElement.textContent = chartTitles[this.metricType] || 'Production Trends';
+        }
+
+        switch (this.metricType) {
+            case 'production':
+                this.loadProductionTrendChart();
+                break;
+            case 'efficiency':
+                this.loadEfficiencyChart();
+                break;
+            case 'feed':
+                this.loadFeedChart();
+                break;
+            case 'mortality':
+                this.loadMortalityChart();
+                break;
+            case 'profit':
+                this.loadProfitChart();
+                break;
+            default:
+                this.loadProductionTrendChart();
+        }
     }
 
     loadProductionTrendChart() {
@@ -482,7 +526,7 @@ class Analytics {
         };
 
         setTimeout(() => {
-            chartManager.createBarChart('feedChart', chartData);
+            chartManager.createBarChart('productionTrendChart', chartData);
         }, 100);
     }
 
@@ -517,7 +561,133 @@ class Analytics {
         };
 
         setTimeout(() => {
-            chartManager.createLineChart('efficiencyChart', chartData);
+            chartManager.createLineChart('productionTrendChart', chartData);
+        }, 100);
+    }
+
+    loadMortalityChart() {
+        const filteredLogs = this.getFilteredLogs();
+        
+        if (filteredLogs.length === 0) {
+            document.getElementById('productionTrendChart').parentElement.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <p>No mortality data available yet.</p>
+                    <small>Start logging daily production to see mortality trends.</small>
+                </div>
+            `;
+            return;
+        }
+
+        const groupedData = Calculations.groupDataByPeriod(filteredLogs, 'week');
+        const labels = Object.keys(groupedData).sort();
+        
+        const mortalityData = labels.map(week => {
+            const weekLogs = groupedData[week];
+            return weekLogs.reduce((sum, log) => sum + (log.mortality || 0), 0);
+        });
+
+        const mortalityRateData = labels.map(week => {
+            const weekLogs = groupedData[week];
+            const totalMortality = weekLogs.reduce((sum, log) => sum + (log.mortality || 0), 0);
+            const avgBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
+            return avgBirds > 0 ? (totalMortality / avgBirds) * 100 : 0;
+        });
+
+        const chartData = {
+            labels: labels.map(label => new Date(label).toLocaleDateString()),
+            datasets: [
+                {
+                    label: 'Weekly Mortality Count',
+                    data: mortalityData,
+                    color: '#ef4444',
+                    fill: true
+                },
+                {
+                    label: 'Mortality Rate %',
+                    data: mortalityRateData,
+                    color: '#f97316',
+                    fill: false
+                }
+            ]
+        };
+
+        setTimeout(() => {
+            chartManager.createLineChart('productionTrendChart', chartData);
+        }, 100);
+    }
+
+    loadProfitChart() {
+        if (this.sales.length === 0 && this.expenses.length === 0) {
+            document.getElementById('productionTrendChart').parentElement.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <p>No financial data available yet.</p>
+                    <small>Start recording sales and expenses to see profit trends.</small>
+                </div>
+            `;
+            return;
+        }
+
+        // Group sales and expenses by month
+        const allDates = [...this.sales.map(s => s.date), ...this.expenses.map(e => e.date)];
+        const dateRange = [...new Set(allDates)].sort();
+        
+        const monthlyData = {};
+        dateRange.forEach(date => {
+            const month = date.substring(0, 7); // YYYY-MM format
+            if (!monthlyData[month]) {
+                monthlyData[month] = { revenue: 0, expenses: 0 };
+            }
+        });
+
+        // Calculate monthly revenue
+        this.sales.forEach(sale => {
+            const month = sale.date.substring(0, 7);
+            if (monthlyData[month]) {
+                monthlyData[month].revenue += sale.amount || 0;
+            }
+        });
+
+        // Calculate monthly expenses
+        this.expenses.forEach(expense => {
+            const month = expense.date.substring(0, 7);
+            if (monthlyData[month]) {
+                monthlyData[month].expenses += expense.amount || 0;
+            }
+        });
+
+        const labels = Object.keys(monthlyData).sort();
+        const revenueData = labels.map(month => monthlyData[month].revenue);
+        const expenseData = labels.map(month => monthlyData[month].expenses);
+        const profitData = labels.map(month => monthlyData[month].revenue - monthlyData[month].expenses);
+
+        const chartData = {
+            labels: labels.map(label => new Date(label + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'short' })),
+            datasets: [
+                {
+                    label: 'Revenue',
+                    data: revenueData,
+                    color: '#10b981',
+                    fill: false
+                },
+                {
+                    label: 'Expenses',
+                    data: expenseData,
+                    color: '#ef4444',
+                    fill: false
+                },
+                {
+                    label: 'Profit',
+                    data: profitData,
+                    color: '#2563eb',
+                    fill: true
+                }
+            ]
+        };
+
+        setTimeout(() => {
+            chartManager.createLineChart('productionTrendChart', chartData);
         }, 100);
     }
 
