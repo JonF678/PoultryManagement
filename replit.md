@@ -122,6 +122,26 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes: Latest modifications with dates
 
+### July 21, 2025 - Chart Fixes and Vaccination Schedule Customization
+- **Fixed Analytics Primary Metric Dropdown**: Resolved issue where selecting different metrics (Profit Analysis, etc.) didn't update charts
+  - **Dynamic Chart Switching**: Implemented proper metric-based chart rendering with dynamic titles
+  - **New Chart Types**: Added Mortality Trends and Profit Analysis charts with proper data visualization
+  - **Enhanced User Experience**: Charts now update instantly when metric selection changes
+- **Fixed Cage Management Charts**: Resolved empty Production Trend and Performance Overview sections
+  - **Chart Loading**: Added missing chart rendering calls that were preventing display
+  - **Enhanced Charts**: Improved Performance Overview with gauge-style display showing laying rate percentage
+  - **Empty State Handling**: Added proper fallback messages when no data is available
+- **Vaccination Schedule Customization**: Transformed hard-coded vaccination schedule into user-configurable system
+  - **Custom Schedule Manager**: Built comprehensive interface for creating and editing vaccination schedules
+  - **User Input Interface**: Added modal with form fields for day, weeks, vaccine name, and administration method
+  - **Schedule Persistence**: Custom schedules saved per cycle using localStorage with automatic loading
+  - **Standard Schedule Option**: Users can switch between custom and standard schedules with confirmation
+  - **Dynamic Schedule Display**: Schedule automatically shows completion status based on recorded vaccinations
+- **Automatic Flock Age Calculation**: Fixed vaccination management to auto-calculate flock age from cycle start date
+  - **Read-Only Field**: Made flock age field non-editable with visual indicators showing auto-calculation
+  - **Real-Time Updates**: Age updates instantly when vaccination date changes
+  - **Improved UX**: Added helpful text and styling to indicate automatic calculation
+
 ### July 21, 2025 - Successful Migration and CSV Import/Export Implementation
 - **Complete Migration**: Successfully migrated Poultry Management PWA from Replit Agent to standard Replit environment
 - **Python 3.11 Installation**: Installed Python 3.11 for HTTP server functionality

@@ -2,12 +2,17 @@ class VaccinationManager {
     constructor() {
         this.cycle = null;
         this.vaccinations = [];
+        this.customSchedule = [];
     }
 
     async init(cycleId) {
         this.cycle = await db.get('cycles', parseInt(cycleId));
         this.vaccinations = await db.getByIndex('vaccinations', 'cycleId', parseInt(cycleId));
         this.vaccinations.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // Load custom schedule for this cycle
+        this.customSchedule = await this.loadCustomSchedule(parseInt(cycleId));
+        
         this.render();
     }
 
@@ -163,25 +168,47 @@ class VaccinationManager {
 
         return `
             <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Recommended Vaccination Schedule</h5>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Vaccination Schedule</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="vaccinationManager.showScheduleManager()">
+                            <i class="fas fa-edit me-1"></i>Customize Schedule
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="vaccinationManager.resetToStandardSchedule()">
+                            <i class="fas fa-undo me-1"></i>Use Standard
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        ${schedule.map(item => `
-                            <div class="col-md-4 mb-3">
-                                <div class="card border-left-${item.completed ? 'success' : 'warning'}">
-                                    <div class="card-body p-3">
-                                        <h6 class="card-title mb-1">${item.vaccine}</h6>
-                                        <p class="card-text text-muted mb-1">Day ${item.day} (${item.weeks} weeks)</p>
-                                        <small class="text-${item.completed ? 'success' : 'warning'}">
-                                            ${item.completed ? '✓ Completed' : '⏳ Pending'}
-                                        </small>
+                    ${schedule.length === 0 ? `
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
+                            <h5>No Schedule Set</h5>
+                            <p class="text-muted">Create a custom vaccination schedule or use the standard schedule.</p>
+                            <button class="btn btn-primary me-2" onclick="vaccinationManager.showScheduleManager()">
+                                <i class="fas fa-plus me-1"></i>Create Custom Schedule
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="vaccinationManager.resetToStandardSchedule()">
+                                <i class="fas fa-calendar me-1"></i>Use Standard Schedule
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="row">
+                            ${schedule.map(item => `
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-left-${item.completed ? 'success' : 'warning'}">
+                                        <div class="card-body p-3">
+                                            <h6 class="card-title mb-1">${item.vaccine}</h6>
+                                            <p class="card-text text-muted mb-1">Day ${item.day} (${item.weeks} weeks)</p>
+                                            <small class="text-${item.completed ? 'success' : 'warning'}">
+                                                ${item.completed ? '✓ Completed' : '⏳ Pending'}
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `).join('')}
-                    </div>
+                            `).join('')}
+                        </div>
+                    `}
                 </div>
             </div>
         `;
@@ -271,7 +298,20 @@ class VaccinationManager {
     }
 
     getVaccinationSchedule() {
-        const standardSchedule = [
+        // Use custom schedule if available, otherwise use standard schedule
+        const schedule = this.customSchedule.length > 0 ? this.customSchedule : this.getStandardSchedule();
+
+        return schedule.map(item => {
+            const completed = this.vaccinations.some(vacc => 
+                vacc.vaccineName.toLowerCase().includes(item.vaccine.toLowerCase()) &&
+                Math.abs(vacc.flockAge - item.day) <= 3 // Allow 3 days tolerance
+            );
+            return { ...item, completed };
+        });
+    }
+
+    getStandardSchedule() {
+        return [
             { day: 1, weeks: 0, vaccine: "Marek's Disease", method: "injection" },
             { day: 7, weeks: 1, vaccine: "Newcastle + IB", method: "spray" },
             { day: 14, weeks: 2, vaccine: "Gumboro (IBD)", method: "drinking_water" },
@@ -282,14 +322,6 @@ class VaccinationManager {
             { day: 105, weeks: 15, vaccine: "Newcastle + IB", method: "injection" },
             { day: 119, weeks: 17, vaccine: "Egg Drop Syndrome", method: "injection" }
         ];
-
-        return standardSchedule.map(item => {
-            const completed = this.vaccinations.some(vacc => 
-                vacc.vaccineName.toLowerCase().includes(item.vaccine.toLowerCase()) &&
-                Math.abs(vacc.flockAge - item.day) <= 3 // Allow 3 days tolerance
-            );
-            return { ...item, completed };
-        });
     }
 
     async handleVaccinationSubmit(event) {
@@ -435,6 +467,220 @@ class VaccinationManager {
                 flockAgeInput.value = newFlockAge;
             });
         }
+    }
+
+    async loadCustomSchedule(cycleId) {
+        try {
+            // Try to load custom schedule from localStorage first, then from a potential future database table
+            const scheduleKey = `vaccination_schedule_${cycleId}`;
+            const savedSchedule = localStorage.getItem(scheduleKey);
+            return savedSchedule ? JSON.parse(savedSchedule) : [];
+        } catch (error) {
+            console.error('Error loading custom schedule:', error);
+            return [];
+        }
+    }
+
+    async saveCustomSchedule(schedule) {
+        try {
+            const scheduleKey = `vaccination_schedule_${this.cycle.id}`;
+            localStorage.setItem(scheduleKey, JSON.stringify(schedule));
+            this.customSchedule = schedule;
+            this.showToast('Custom vaccination schedule saved successfully!', 'success');
+            this.render(); // Refresh the view
+        } catch (error) {
+            console.error('Error saving custom schedule:', error);
+            this.showToast('Error saving custom schedule. Please try again.', 'error');
+        }
+    }
+
+    async resetToStandardSchedule() {
+        if (!confirm('This will replace your custom schedule with the standard vaccination schedule. Continue?')) {
+            return;
+        }
+
+        try {
+            const scheduleKey = `vaccination_schedule_${this.cycle.id}`;
+            localStorage.removeItem(scheduleKey);
+            this.customSchedule = [];
+            this.showToast('Switched to standard vaccination schedule.', 'success');
+            this.render(); // Refresh the view
+        } catch (error) {
+            console.error('Error resetting schedule:', error);
+            this.showToast('Error resetting schedule. Please try again.', 'error');
+        }
+    }
+
+    showScheduleManager() {
+        const currentSchedule = this.customSchedule.length > 0 ? this.customSchedule : this.getStandardSchedule();
+        
+        const modal = `
+            <div class="modal fade" id="scheduleManagerModal" tabindex="-1">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-calendar-edit me-2"></i>Customize Vaccination Schedule
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6>Schedule Items</h6>
+                                    <button class="btn btn-sm btn-success" onclick="vaccinationManager.addScheduleItem()">
+                                        <i class="fas fa-plus me-1"></i>Add Item
+                                    </button>
+                                </div>
+                                <div id="schedule-items">
+                                    ${this.renderScheduleItems(currentSchedule)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="vaccinationManager.saveScheduleFromModal()">
+                                <i class="fas fa-save me-2"></i>Save Schedule
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('modal-container').innerHTML = modal;
+        const modalElement = new bootstrap.Modal(document.getElementById('scheduleManagerModal'));
+        modalElement.show();
+    }
+
+    renderScheduleItems(schedule) {
+        return schedule.map((item, index) => `
+            <div class="row mb-3 schedule-item" data-index="${index}">
+                <div class="col-md-2">
+                    <label class="form-label">Day</label>
+                    <input type="number" class="form-control" value="${item.day}" min="1" 
+                           onchange="vaccinationManager.updateScheduleItem(${index}, 'day', this.value)">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Weeks</label>
+                    <input type="number" class="form-control" value="${item.weeks}" min="0" step="0.1"
+                           onchange="vaccinationManager.updateScheduleItem(${index}, 'weeks', this.value)">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Vaccine</label>
+                    <input type="text" class="form-control" value="${item.vaccine}" 
+                           onchange="vaccinationManager.updateScheduleItem(${index}, 'vaccine', this.value)">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Method</label>
+                    <select class="form-select" onchange="vaccinationManager.updateScheduleItem(${index}, 'method', this.value)">
+                        <option value="drinking_water" ${item.method === 'drinking_water' ? 'selected' : ''}>Drinking Water</option>
+                        <option value="injection" ${item.method === 'injection' ? 'selected' : ''}>Injection</option>
+                        <option value="spray" ${item.method === 'spray' ? 'selected' : ''}>Spray</option>
+                        <option value="eye_drop" ${item.method === 'eye_drop' ? 'selected' : ''}>Eye Drop</option>
+                        <option value="wing_web" ${item.method === 'wing_web' ? 'selected' : ''}>Wing Web</option>
+                        <option value="in_ovo" ${item.method === 'in_ovo' ? 'selected' : ''}>In Ovo</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-outline-danger btn-sm" onclick="vaccinationManager.removeScheduleItem(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    addScheduleItem() {
+        const scheduleItems = document.getElementById('schedule-items');
+        const currentItems = Array.from(scheduleItems.children);
+        const newIndex = currentItems.length;
+        
+        const newItem = document.createElement('div');
+        newItem.innerHTML = `
+            <div class="row mb-3 schedule-item" data-index="${newIndex}">
+                <div class="col-md-2">
+                    <label class="form-label">Day</label>
+                    <input type="number" class="form-control" value="1" min="1" 
+                           onchange="vaccinationManager.updateScheduleItem(${newIndex}, 'day', this.value)">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Weeks</label>
+                    <input type="number" class="form-control" value="0" min="0" step="0.1"
+                           onchange="vaccinationManager.updateScheduleItem(${newIndex}, 'weeks', this.value)">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Vaccine</label>
+                    <input type="text" class="form-control" value="" placeholder="Enter vaccine name"
+                           onchange="vaccinationManager.updateScheduleItem(${newIndex}, 'vaccine', this.value)">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Method</label>
+                    <select class="form-select" onchange="vaccinationManager.updateScheduleItem(${newIndex}, 'method', this.value)">
+                        <option value="drinking_water">Drinking Water</option>
+                        <option value="injection">Injection</option>
+                        <option value="spray">Spray</option>
+                        <option value="eye_drop">Eye Drop</option>
+                        <option value="wing_web">Wing Web</option>
+                        <option value="in_ovo">In Ovo</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-outline-danger btn-sm" onclick="vaccinationManager.removeScheduleItem(${newIndex})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        scheduleItems.appendChild(newItem.firstElementChild);
+    }
+
+    updateScheduleItem(index, field, value) {
+        // This will be handled when saving the schedule
+        console.log(`Updated item ${index}, field ${field} to ${value}`);
+    }
+
+    removeScheduleItem(index) {
+        const item = document.querySelector(`[data-index="${index}"]`);
+        if (item) {
+            item.remove();
+        }
+    }
+
+    saveScheduleFromModal() {
+        const scheduleItems = document.querySelectorAll('.schedule-item');
+        const newSchedule = [];
+        
+        scheduleItems.forEach(item => {
+            const day = parseInt(item.querySelector('input[type="number"]').value);
+            const weeks = parseFloat(item.querySelectorAll('input[type="number"]')[1].value);
+            const vaccine = item.querySelector('input[type="text"]').value.trim();
+            const method = item.querySelector('select').value;
+            
+            if (vaccine && day > 0) {
+                newSchedule.push({
+                    day: day,
+                    weeks: weeks,
+                    vaccine: vaccine,
+                    method: method
+                });
+            }
+        });
+        
+        // Sort by day
+        newSchedule.sort((a, b) => a.day - b.day);
+        
+        if (newSchedule.length === 0) {
+            this.showToast('Please add at least one vaccination item.', 'error');
+            return;
+        }
+        
+        this.saveCustomSchedule(newSchedule);
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('scheduleManagerModal'));
+        modal.hide();
     }
 
     showToast(message, type = 'info') {
