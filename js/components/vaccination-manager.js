@@ -22,6 +22,11 @@ class VaccinationManager {
         `;
 
         document.getElementById('app-content').innerHTML = content;
+        
+        // Initialize flock age calculation
+        setTimeout(() => {
+            this.initializeFlockAge();
+        }, 100);
     }
 
     renderHeader() {
@@ -58,7 +63,8 @@ class VaccinationManager {
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="flockAgeVacc" class="form-label">Flock Age (days)</label>
-                                    <input type="number" class="form-control" id="flockAgeVacc" min="1" required>
+                                    <input type="number" class="form-control" id="flockAgeVacc" readonly style="background-color: #f8f9fa;" title="Automatically calculated from cycle start date">
+                                    <small class="text-muted">Calculated automatically</small>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -414,6 +420,23 @@ class VaccinationManager {
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     }
 
+    initializeFlockAge() {
+        const dateInput = document.getElementById('vaccinationDate');
+        const flockAgeInput = document.getElementById('flockAgeVacc');
+        
+        if (dateInput && flockAgeInput) {
+            // Calculate and set initial flock age
+            const flockAge = this.calculateFlockAge(dateInput.value);
+            flockAgeInput.value = flockAge;
+            
+            // Add event listener for date changes
+            dateInput.addEventListener('change', () => {
+                const newFlockAge = this.calculateFlockAge(dateInput.value);
+                flockAgeInput.value = newFlockAge;
+            });
+        }
+    }
+
     showToast(message, type = 'info') {
         const toast = document.getElementById('toast');
         const toastBody = toast.querySelector('.toast-body');
@@ -441,13 +464,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.addEventListener('change', (e) => {
-        if (e.target.id === 'vaccinationDate' && typeof vaccinationManager.calculateFlockAge === 'function') {
-            const flockAge = vaccinationManager.calculateFlockAge(e.target.value);
-            const flockAgeInput = document.getElementById('flockAgeVacc');
-            if (flockAgeInput) {
-                flockAgeInput.value = flockAge;
-            }
-        }
-    });
+
 });
