@@ -800,6 +800,18 @@ class Analytics {
         const bsToast = new bootstrap.Toast(toast);
         bsToast.show();
     }
+
+    // Clear cache method for data clearing
+    clearCache() {
+        this.cycle = null;
+        this.cycles = [];
+        this.cages = [];
+        this.productionLogs = [];
+        this.feedLogs = [];
+        this.sales = [];
+        this.expenses = [];
+        console.log('Analytics cache cleared');
+    }
 }
 
 // Global analytics instance

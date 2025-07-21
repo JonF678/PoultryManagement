@@ -691,10 +691,28 @@ class Router {
         }
 
         try {
+            // Clear all object stores
             await db.clear('cycles');
             await db.clear('cages');
             await db.clear('productionLogs');
             await db.clear('feedLogs');
+            await db.clear('sales');
+            await db.clear('expenses');
+            await db.clear('vaccinations');
+            
+            // Clear any cached analytics data and force refresh
+            if (window.analytics && analytics.clearCache) {
+                analytics.clearCache();
+            }
+            
+            // Force analytics to reinitialize with empty data
+            if (window.analytics) {
+                analytics.init();
+            }
+            
+            // Clear localStorage settings if needed (keep user preferences but clear data cache)
+            localStorage.removeItem('analyticsCache');
+            localStorage.removeItem('lastBackup');
             
             this.showToast('All data cleared successfully!', 'success');
             this.navigate('cycles');
