@@ -39,6 +39,10 @@ class Router {
                 title: 'Vaccination Records',
                 requiresParam: 'cycleId'
             },
+            'data-manager': {
+                component: 'dataManager',
+                title: 'Import/Export Data'
+            },
             'settings': {
                 component: 'settings',
                 title: 'Settings'
@@ -220,6 +224,13 @@ class Router {
                     } else {
                         throw new Error('Cycle ID required for vaccination manager');
                     }
+                    break;
+                case 'dataManager':
+                    if (!dataManager.db) {
+                        dataManager.init(db);
+                    }
+                    content.innerHTML = dataManager.render();
+                    dataManager.loadCycleOptions();
                     break;
                 case 'settings':
                     this.loadSettings();
