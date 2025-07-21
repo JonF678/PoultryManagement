@@ -163,7 +163,7 @@ class DataManager {
     }
 
     async loadCycleOptions() {
-        const cycles = await this.db.getAllCycles();
+        const cycles = await this.db.getAll('cycles');
         const select = document.getElementById('exportCycleSelect');
         
         if (select) {

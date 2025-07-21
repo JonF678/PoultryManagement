@@ -86,7 +86,7 @@ class Router {
         }
     }
 
-    navigate(route, params = {}, updateHistory = true) {
+    async navigate(route, params = {}, updateHistory = true) {
         const routeConfig = this.routes[route];
         
         if (!routeConfig) {
@@ -118,7 +118,7 @@ class Router {
         this.updateActiveNav(route);
 
         // Load the component
-        this.loadComponent(routeConfig.component, params);
+        await this.loadComponent(routeConfig.component, params);
     }
 
     buildUrl(route, params) {
@@ -171,7 +171,7 @@ class Router {
         });
     }
 
-    loadComponent(componentName, params) {
+    async loadComponent(componentName, params) {
         // Show loading spinner
         this.showLoading();
 
@@ -220,15 +220,19 @@ class Router {
                     break;
                 case 'vaccinationManager':
                     if (params.cycleId) {
-                        vaccinationManager.init(parseInt(params.cycleId));
+                        await vaccinationManager.init(parseInt(params.cycleId));
                     } else {
-                        throw new Error('Cycle ID required for vaccination manager');
+                        // Redirect to cycles page if no cycle ID provided
+                        console.warn('No cycle ID provided for vaccination manager, redirecting to cycles');
+                        this.navigate('cycles', {}, true);
+                        return;
                     }
                     break;
                 case 'dataManager':
                     if (!dataManager.db) {
-                        dataManager.init(db);
+                        await dataManager.init(db);
                     }
+                    const content = document.getElementById('app-content');
                     content.innerHTML = dataManager.render();
                     dataManager.loadCycleOptions();
                     break;
@@ -747,7 +751,12 @@ class Router {
                 </button>
             </div>
         `;
-        document.getElementById('app-content').innerHTML = content;
+        const contentElement = document.getElementById('app-content');
+        if (contentElement) {
+            contentElement.innerHTML = content;
+        } else {
+            console.error('Content element not found, error:', message);
+        }
     }
 
     showToast(message, type = 'info') {
