@@ -219,8 +219,15 @@ class CSVHandler {
                 const cycleId = cycleMap[row.Cycle] || cycleMap[row.cycleId];
                 const cageId = cageMap[row.Cage] || cageMap[row.cageId];
 
-                if (!cycleId || !cageId) {
-                    results.errors.push(`Row ${data.indexOf(row) + 2}: Invalid cycle or cage reference`);
+                if (!cycleId) {
+                    const availableCycles = cycles.map(c => c.name || `Cycle ${c.id}`).join(', ');
+                    results.errors.push(`Row ${data.indexOf(row) + 2}: Invalid cycle '${row.Cycle || row.cycleId}'. Available cycles: ${availableCycles}`);
+                    continue;
+                }
+                
+                if (!cageId) {
+                    const availableCages = cages.filter(c => c.cycleId === cycleId).map(c => c.name).join(', ');
+                    results.errors.push(`Row ${data.indexOf(row) + 2}: Invalid cage '${row.Cage || row.cageId}' for cycle '${row.Cycle}'. Available cages: ${availableCages}`);
                     continue;
                 }
 
