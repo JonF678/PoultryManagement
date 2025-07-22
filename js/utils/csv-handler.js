@@ -345,6 +345,47 @@ class CSVHandler {
         return results;
     }
 
+    // Import feed logs from CSV
+    async importFeedLogs(csvText) {
+        const data = this.parseCSV(csvText);
+        const cycles = await this.db.getAllCycles();
+
+        const cycleMap = {};
+        cycles.forEach(cycle => {
+            cycleMap[cycle.name] = cycle.id;
+            cycleMap[cycle.id] = cycle.id;
+        });
+
+        const results = { success: 0, errors: [] };
+
+        for (const row of data) {
+            try {
+                const cycleId = cycleMap[row.Cycle] || cycleMap[row.cycleId];
+
+                if (!cycleId) {
+                    results.errors.push(`Row ${data.indexOf(row) + 2}: Invalid cycle reference`);
+                    continue;
+                }
+
+                const feedLog = {
+                    cycleId: cycleId,
+                    date: row.Date || row.date,
+                    feedConsumed: parseFloat(row.Feed_Consumed_Kg || row.feedConsumed) || 0,
+                    feedCost: parseFloat(row.Feed_Cost || row.feedCost) || 0,
+                    notes: row.Notes || row.notes || '',
+                    createdAt: new Date().toISOString()
+                };
+
+                await this.db.addFeedLog(feedLog);
+                results.success++;
+            } catch (error) {
+                results.errors.push(`Row ${data.indexOf(row) + 2}: ${error.message}`);
+            }
+        }
+
+        return results;
+    }
+
     // Download CSV file
     downloadCSV(csvContent, filename) {
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -401,6 +442,18 @@ class CSVHandler {
         const sampleRow = [
             '2025-07-21', 'Cycle 1', 'feed', 'Layer feed 50kg', '150.00', 
             'cash', 'Weekly feed purchase'
+        ];
+
+        return [headers.join(','), sampleRow.join(',')].join('\n');
+    }
+
+    getFeedLogTemplate() {
+        const headers = [
+            'Date', 'Cycle', 'Feed_Consumed_Kg', 'Feed_Cost', 'Notes'
+        ];
+        
+        const sampleRow = [
+            '2025-07-21', 'Cycle 1', '25.5', '85.00', 'Daily feed consumption'
         ];
 
         return [headers.join(','), sampleRow.join(',')].join('\n');

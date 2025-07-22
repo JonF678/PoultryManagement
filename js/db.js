@@ -202,6 +202,64 @@ class Database {
             request.onerror = () => reject(request.error);
         });
     }
+
+    // Feed logs methods
+    async addFeedLog(feedLog) {
+        return this.add('feedLogs', feedLog);
+    }
+
+    async getFeedLogs(cycleId = null) {
+        if (cycleId) {
+            return this.getByIndex('feedLogs', 'cycleId', cycleId);
+        }
+        return this.getAll('feedLogs');
+    }
+
+    async updateFeedLog(feedLog) {
+        return this.update('feedLogs', feedLog);
+    }
+
+    async deleteFeedLog(id) {
+        return this.delete('feedLogs', id);
+    }
+
+    // Sales methods
+    async addSale(sale) {
+        return this.add('sales', sale);
+    }
+
+    async getSales(cycleId = null) {
+        if (cycleId) {
+            return this.getByIndex('sales', 'cycleId', cycleId);
+        }
+        return this.getAll('sales');
+    }
+
+    // Expense methods
+    async addExpense(expense) {
+        return this.add('expenses', expense);
+    }
+
+    async getExpenses(cycleId = null) {
+        if (cycleId) {
+            return this.getByIndex('expenses', 'cycleId', cycleId);
+        }
+        return this.getAll('expenses');
+    }
+
+    // Production log methods
+    async addProductionLog(log) {
+        return this.add('productionLogs', log);
+    }
+
+    // Convenience methods for CSV handler
+    async getAllCycles() {
+        return this.getAll('cycles');
+    }
+
+    async getAllCages() {
+        return this.getAll('cages');
+    }
 }
 
 // Global database instance

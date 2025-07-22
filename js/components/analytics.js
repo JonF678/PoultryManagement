@@ -513,7 +513,7 @@ class Analytics {
         const labels = Object.keys(groupedFeedData).sort();
         const feedData = labels.map(week => {
             const weekLogs = groupedFeedData[week];
-            return weekLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
+            return weekLogs.reduce((sum, log) => sum + (log.feedConsumed || 0), 0);
         });
 
         const chartData = {
@@ -534,9 +534,9 @@ class Analytics {
         const recentLogs = this.getFilteredLogs().slice(-30);
         
         const efficiencyData = recentLogs.map(log => {
-            const feedLog = this.feedLogs.find(f => f.date === log.date && f.cageId === log.cageId);
-            const feedAmount = feedLog?.amount || log.currentFeed || 0;
-            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+            const feedLog = this.feedLogs.find(f => f.date === log.date && f.cycleId === log.cycleId);
+            const feedAmount = feedLog?.feedConsumed || log.currentFeed || 0;
+            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsProduced || 0);
             return Calculations.calculateFeedEfficiency(eggs, feedAmount);
         });
 

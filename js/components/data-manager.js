@@ -110,6 +110,9 @@ class DataManager {
                                     <button class="btn btn-sm btn-outline-primary" onclick="dataManager.downloadTemplate('expenses')">
                                         <i class="fas fa-file-csv me-1"></i>Expenses Template
                                     </button>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="dataManager.downloadTemplate('feed')">
+                                        <i class="fas fa-file-csv me-1"></i>Feed Log Template
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -329,6 +332,10 @@ class DataManager {
             case 'expenses':
                 content = this.csvHandler.getExpensesTemplate();
                 filename = 'expenses_template.csv';
+                break;
+            case 'feed':
+                content = this.csvHandler.getFeedLogTemplate();
+                filename = 'feed_log_template.csv';
                 break;
             default:
                 this.showMessage('Invalid template type', 'danger');
