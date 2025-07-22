@@ -308,7 +308,10 @@ class Analytics {
 
         // Feed efficiency
         const totalFeed = filteredFeedLogs.reduce((sum, log) => sum + (log.feedConsumed || log.amount || 0), 0);
-        const feedEfficiency = Calculations.calculateFeedEfficiency(totalProduction, totalFeed);
+        const productionLogsFeed = filteredLogs.reduce((sum, log) => sum + (log.currentFeed || 0), 0);
+        const combinedFeed = totalFeed + productionLogsFeed;
+        const feedEfficiency = Calculations.calculateFeedEfficiency(totalProduction, combinedFeed);
+        console.log(`KPI Debug - Total Production: ${totalProduction}, Feed Logs Total: ${totalFeed}, Production Logs Feed: ${productionLogsFeed}, Combined Feed: ${combinedFeed}, Efficiency: ${feedEfficiency}`);
         document.getElementById('feed-efficiency').textContent = feedEfficiency.toFixed(2);
 
         // Cycle Profit - Debug logging
@@ -521,9 +524,11 @@ class Analytics {
         
         const efficiencyData = recentLogs.map(log => {
             const feedLog = this.feedLogs.find(f => f.date === log.date && f.cycleId === log.cycleId);
-            const feedAmount = feedLog?.feedConsumed || log.currentFeed || 0;
+            const feedAmount = feedLog?.feedConsumed || feedLog?.amount || log.currentFeed || 0;
             const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
-            return Calculations.calculateFeedEfficiency(eggs, feedAmount);
+            const efficiency = Calculations.calculateFeedEfficiency(eggs, feedAmount);
+            console.log(`Debug efficiency - Date: ${log.date}, Eggs: ${eggs}, Feed: ${feedAmount}, Efficiency: ${efficiency}`);
+            return efficiency;
         });
 
         const movingAvg = Calculations.calculateMovingAverage(efficiencyData, 7);
