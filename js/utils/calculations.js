@@ -157,7 +157,7 @@ class Calculations {
     static calculateCycleMetrics(productionLogs, cages, feedLogs) {
         const totalBirds = cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
         const totalEggs = productionLogs.reduce((sum, log) => sum + (log.eggsCollected || log.eggsProduced || 0), 0);
-        const totalFeed = feedLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
+        const totalFeed = feedLogs.reduce((sum, log) => sum + (log.feedConsumed || log.amount || 0), 0);
         
         const cycleLength = productionLogs.length > 0 ? 
             Math.max(...productionLogs.map(log => log.flockAge || 0)) : 0;

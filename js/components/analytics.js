@@ -307,7 +307,7 @@ class Analytics {
         document.getElementById('avg-laying-rate').textContent = `${avgLayingRate.toFixed(1)}%`;
 
         // Feed efficiency
-        const totalFeed = filteredFeedLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
+        const totalFeed = filteredFeedLogs.reduce((sum, log) => sum + (log.feedConsumed || log.amount || 0), 0);
         const feedEfficiency = Calculations.calculateFeedEfficiency(totalProduction, totalFeed);
         document.getElementById('feed-efficiency').textContent = feedEfficiency.toFixed(2);
 
@@ -508,10 +508,21 @@ class Analytics {
     loadEfficiencyChart() {
         const recentLogs = this.getFilteredLogs().slice(-30);
         
+        if (recentLogs.length === 0) {
+            document.getElementById('productionTrendChart').parentElement.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <p>No production data available for efficiency analysis.</p>
+                    <small>Start logging daily production to see laying efficiency trends.</small>
+                </div>
+            `;
+            return;
+        }
+        
         const efficiencyData = recentLogs.map(log => {
             const feedLog = this.feedLogs.find(f => f.date === log.date && f.cycleId === log.cycleId);
             const feedAmount = feedLog?.feedConsumed || log.currentFeed || 0;
-            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsProduced || 0);
+            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
             return Calculations.calculateFeedEfficiency(eggs, feedAmount);
         });
 
@@ -672,10 +683,10 @@ class Analytics {
             const cageFeedLogs = this.feedLogs.filter(log => log.cageId === cage.id);
             
             const totalEggs = cageLogs.reduce((sum, log) => {
-                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
                 return sum + eggs;
             }, 0);
-            const totalFeed = cageFeedLogs.reduce((sum, log) => sum + (log.amount || 0), 0) +
+            const totalFeed = cageFeedLogs.reduce((sum, log) => sum + (log.feedConsumed || log.amount || 0), 0) +
                            cageLogs.reduce((sum, log) => sum + (log.currentFeed || 0), 0);
             
             const layingRate = cage.currentBirds > 0 ?
@@ -760,7 +771,7 @@ class Analytics {
         
         // Calculate overall metrics
         const totalProduction = this.productionLogs.reduce((sum, log) => {
-            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
             return sum + eggs;
         }, 0);
         const totalBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
@@ -785,7 +796,7 @@ class Analytics {
         }
 
         // Feed efficiency insights  
-        const totalFeed = this.feedLogs.reduce((sum, log) => sum + (log.amount || 0), 0) +
+        const totalFeed = this.feedLogs.reduce((sum, log) => sum + (log.feedConsumed || log.amount || 0), 0) +
                          this.productionLogs.reduce((sum, log) => sum + (log.currentFeed || 0), 0);
         const feedEfficiency = Calculations.calculateFeedEfficiency(totalProduction, totalFeed);
         
@@ -804,11 +815,11 @@ class Analytics {
         
         if (recentLogs.length > 0 && previousLogs.length > 0) {
             const recentAvg = recentLogs.reduce((sum, log) => {
-                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
                 return sum + eggs;
             }, 0) / recentLogs.length;
             const previousAvg = previousLogs.reduce((sum, log) => {
-                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
                 return sum + eggs;
             }, 0) / previousLogs.length;
             
