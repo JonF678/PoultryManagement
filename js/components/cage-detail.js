@@ -327,15 +327,16 @@ class CageDetail {
     }
 
     renderProductionLogRow(log) {
+        const eggs = log.eggsCollected || log.eggsProduced || 0;
         const layingPercentage = Calculations.calculateLayingPercentage(
-            log.eggsCollected || 0, 
+            eggs, 
             this.cage.currentBirds
         );
 
         return `
             <tr>
                 <td>${new Date(log.date).toLocaleDateString()}</td>
-                <td><strong>${log.eggsCollected || 0}</strong></td>
+                <td><strong>${eggs}</strong></td>
                 <td><span class="badge bg-${layingPercentage > 80 ? 'success' : layingPercentage > 60 ? 'warning' : 'danger'}">${layingPercentage.toFixed(1)}%</span></td>
                 <td>${log.mortality || 0}</td>
                 <td><small class="text-muted">${log.notes || '-'}</small></td>
@@ -386,14 +387,14 @@ class CageDetail {
             datasets: [
                 {
                     label: 'Eggs Collected',
-                    data: recentLogs.map(log => log.eggsCollected || 0),
+                    data: recentLogs.map(log => log.eggsCollected || log.eggsProduced || 0),
                     color: '#2563eb',
                     fill: true
                 },
                 {
                     label: 'Laying %',
                     data: recentLogs.map(log => 
-                        Calculations.calculateLayingPercentage(log.eggsCollected || 0, this.cage.currentBirds)
+                        Calculations.calculateLayingPercentage(log.eggsCollected || log.eggsProduced || 0, this.cage.currentBirds)
                     ),
                     color: '#10b981',
                     fill: false

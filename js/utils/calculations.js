@@ -46,7 +46,7 @@ class Calculations {
 
     static calculateCumulativeProduction(logs) {
         if (!logs || logs.length === 0) return 0;
-        return logs.reduce((total, log) => total + (log.eggsCollected || 0), 0);
+        return logs.reduce((total, log) => total + (log.eggsCollected || log.eggsProduced || 0), 0);
     }
 
     static calculateAverageProduction(logs, days) {
@@ -156,7 +156,7 @@ class Calculations {
     // Add cycle-based metrics calculation methods
     static calculateCycleMetrics(productionLogs, cages, feedLogs) {
         const totalBirds = cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
-        const totalEggs = productionLogs.reduce((sum, log) => sum + (log.eggsCollected || 0), 0);
+        const totalEggs = productionLogs.reduce((sum, log) => sum + (log.eggsCollected || log.eggsProduced || 0), 0);
         const totalFeed = feedLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
         
         const cycleLength = productionLogs.length > 0 ? 

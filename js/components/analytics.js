@@ -295,7 +295,7 @@ class Analytics {
 
         // Total production - convert trays to eggs (1 tray = 30 eggs)
         const totalProduction = filteredLogs.reduce((sum, log) => {
-            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
             return sum + eggs;
         }, 0);
         document.getElementById('total-production').textContent = totalProduction.toLocaleString();
@@ -400,7 +400,7 @@ class Analytics {
         const productionData = labels.map(week => {
             const weekLogs = groupedData[week];
             return weekLogs.reduce((sum, log) => {
-                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
                 return sum + eggs;
             }, 0);
         });
@@ -408,7 +408,7 @@ class Analytics {
         const layingData = labels.map(week => {
             const weekLogs = groupedData[week];
             const totalEggs = weekLogs.reduce((sum, log) => {
-                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
                 return sum + eggs;
             }, 0);
             const avgBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
@@ -453,7 +453,7 @@ class Analytics {
         const cagePerformance = this.cages.map(cage => {
             const cageLogs = this.productionLogs.filter(log => log.cageId === cage.id);
             const totalEggs = cageLogs.reduce((sum, log) => {
-                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || 0);
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
                 return sum + eggs;
             }, 0);
             const avgLayingRate = cage.currentBirds > 0 ?
