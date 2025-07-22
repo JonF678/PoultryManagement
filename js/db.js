@@ -252,6 +252,13 @@ class Database {
         return this.add('productionLogs', log);
     }
 
+    async getProductionLogs(cycleId = null) {
+        if (cycleId) {
+            return this.getByIndex('productionLogs', 'cycleId', cycleId);
+        }
+        return this.getAll('productionLogs');
+    }
+
     // Convenience methods for CSV handler
     async getAllCycles() {
         return this.getAll('cycles');
