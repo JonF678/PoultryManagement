@@ -220,32 +220,7 @@ class Analytics {
                 </div>
             </div>
 
-            <div class="row mb-4">
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0">Feed Consumption</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="feedChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0">Efficiency Metrics</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="efficiencyChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
         `;
     }
 
