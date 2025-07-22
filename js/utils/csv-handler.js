@@ -199,7 +199,7 @@ class CSVHandler {
         const cycles = await this.db.getAllCycles();
         const cages = await this.db.getAllCages();
 
-        // Create lookup maps
+        // Create lookup maps and track new items
         const cycleMap = {};
         cycles.forEach(cycle => {
             cycleMap[cycle.name] = cycle.id;
@@ -212,23 +212,45 @@ class CSVHandler {
             cageMap[cage.id] = cage.id;
         });
 
-        const results = { success: 0, errors: [] };
+        const results = { success: 0, errors: [], newCycles: 0, newCages: 0 };
 
         for (const row of data) {
             try {
-                const cycleId = cycleMap[row.Cycle] || cycleMap[row.cycleId];
-                const cageId = cageMap[row.Cage] || cageMap[row.cageId];
-
-                if (!cycleId) {
-                    const availableCycles = cycles.map(c => c.name || `Cycle ${c.id}`).join(', ');
-                    results.errors.push(`Row ${data.indexOf(row) + 2}: Invalid cycle '${row.Cycle || row.cycleId}'. Available cycles: ${availableCycles}`);
-                    continue;
-                }
+                const cycleName = row.Cycle || row.cycleId;
+                const cageName = row.Cage || row.cageId;
                 
+                // Get or create cycle
+                let cycleId = cycleMap[cycleName];
+                if (!cycleId) {
+                    const newCycle = {
+                        name: cycleName,
+                        startDate: row.Date || new Date().toISOString().split('T')[0],
+                        endDate: null,
+                        status: 'active',
+                        notes: `Auto-created from CSV import`,
+                        createdAt: new Date().toISOString()
+                    };
+                    cycleId = await this.db.add('cycles', newCycle);
+                    cycleMap[cycleName] = cycleId;
+                    results.newCycles++;
+                }
+
+                // Get or create cage
+                let cageId = cageMap[cageName];
                 if (!cageId) {
-                    const availableCages = cages.filter(c => c.cycleId === cycleId).map(c => c.name).join(', ');
-                    results.errors.push(`Row ${data.indexOf(row) + 2}: Invalid cage '${row.Cage || row.cageId}' for cycle '${row.Cycle}'. Available cages: ${availableCages}`);
-                    continue;
+                    const newCage = {
+                        name: cageName,
+                        cycleId: cycleId,
+                        capacity: 500, // Default capacity
+                        currentBirds: parseInt(row.Opening_Birds || row.openingBirds) || 0,
+                        breed: 'Mixed',
+                        status: 'active',
+                        notes: `Auto-created from CSV import`,
+                        createdAt: new Date().toISOString()
+                    };
+                    cageId = await this.db.add('cages', newCage);
+                    cageMap[cageName] = cageId;
+                    results.newCages++;
                 }
 
                 const productionLog = {
@@ -267,15 +289,26 @@ class CSVHandler {
             cycleMap[cycle.id] = cycle.id;
         });
 
-        const results = { success: 0, errors: [] };
+        const results = { success: 0, errors: [], newCycles: 0 };
 
         for (const row of data) {
             try {
-                const cycleId = cycleMap[row.Cycle] || cycleMap[row.cycleId];
-
+                const cycleName = row.Cycle || row.cycleId;
+                
+                // Get or create cycle
+                let cycleId = cycleMap[cycleName];
                 if (!cycleId) {
-                    results.errors.push(`Row ${data.indexOf(row) + 2}: Invalid cycle reference`);
-                    continue;
+                    const newCycle = {
+                        name: cycleName,
+                        startDate: row.Date || new Date().toISOString().split('T')[0],
+                        endDate: null,
+                        status: 'active',
+                        notes: `Auto-created from CSV import`,
+                        createdAt: new Date().toISOString()
+                    };
+                    cycleId = await this.db.add('cycles', newCycle);
+                    cycleMap[cycleName] = cycleId;
+                    results.newCycles++;
                 }
 
                 const sale = {
@@ -320,15 +353,26 @@ class CSVHandler {
             cycleMap[cycle.id] = cycle.id;
         });
 
-        const results = { success: 0, errors: [] };
+        const results = { success: 0, errors: [], newCycles: 0 };
 
         for (const row of data) {
             try {
-                const cycleId = cycleMap[row.Cycle] || cycleMap[row.cycleId];
-
+                const cycleName = row.Cycle || row.cycleId;
+                
+                // Get or create cycle
+                let cycleId = cycleMap[cycleName];
                 if (!cycleId) {
-                    results.errors.push(`Row ${data.indexOf(row) + 2}: Invalid cycle reference`);
-                    continue;
+                    const newCycle = {
+                        name: cycleName,
+                        startDate: row.Date || new Date().toISOString().split('T')[0],
+                        endDate: null,
+                        status: 'active',
+                        notes: `Auto-created from CSV import`,
+                        createdAt: new Date().toISOString()
+                    };
+                    cycleId = await this.db.add('cycles', newCycle);
+                    cycleMap[cycleName] = cycleId;
+                    results.newCycles++;
                 }
 
                 const expense = {
@@ -363,15 +407,26 @@ class CSVHandler {
             cycleMap[cycle.id] = cycle.id;
         });
 
-        const results = { success: 0, errors: [] };
+        const results = { success: 0, errors: [], newCycles: 0 };
 
         for (const row of data) {
             try {
-                const cycleId = cycleMap[row.Cycle] || cycleMap[row.cycleId];
-
+                const cycleName = row.Cycle || row.cycleId;
+                
+                // Get or create cycle
+                let cycleId = cycleMap[cycleName];
                 if (!cycleId) {
-                    results.errors.push(`Row ${data.indexOf(row) + 2}: Invalid cycle reference`);
-                    continue;
+                    const newCycle = {
+                        name: cycleName,
+                        startDate: row.Date || new Date().toISOString().split('T')[0],
+                        endDate: null,
+                        status: 'active',
+                        notes: `Auto-created from CSV import`,
+                        createdAt: new Date().toISOString()
+                    };
+                    cycleId = await this.db.add('cycles', newCycle);
+                    cycleMap[cycleName] = cycleId;
+                    results.newCycles++;
                 }
 
                 const feedLog = {

@@ -352,12 +352,18 @@ class DataManager {
         
         let html = `
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="text-success">
                         <strong>Successfully imported:</strong> ${results.success} ${type} records
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <div class="text-info">
+                        <strong>New cycles created:</strong> ${results.newCycles || 0}
+                        ${results.newCages ? `<br><strong>New cages created:</strong> ${results.newCages}` : ''}
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="text-danger">
                         <strong>Errors:</strong> ${results.errors.length}
                     </div>
