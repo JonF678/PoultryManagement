@@ -486,12 +486,25 @@ class Analytics {
 
     loadFeedChart() {
         const filteredFeedLogs = this.getFilteredFeedLogs();
+        
+        if (filteredFeedLogs.length === 0) {
+            // Show no data message
+            document.getElementById('productionTrendChart').parentElement.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <p>No feed consumption data available yet.</p>
+                    <small>Start logging feed consumption to see trends.</small>
+                </div>
+            `;
+            return;
+        }
+        
         const groupedFeedData = Calculations.groupDataByPeriod(filteredFeedLogs, 'week');
         
         const labels = Object.keys(groupedFeedData).sort();
         const feedData = labels.map(week => {
             const weekLogs = groupedFeedData[week];
-            return weekLogs.reduce((sum, log) => sum + (log.feedConsumed || 0), 0);
+            return weekLogs.reduce((sum, log) => sum + (log.feedConsumed || log.amount || 0), 0);
         });
 
         const chartData = {
