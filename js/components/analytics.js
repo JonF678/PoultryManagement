@@ -415,7 +415,9 @@ class Analytics {
                 return sum + eggs;
             }, 0);
             const avgBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
-            return avgBirds > 0 ? Calculations.calculateLayingPercentage(totalEggs, avgBirds, 7) : 0;
+            const layingRate = avgBirds > 0 ? Calculations.calculateLayingPercentage(totalEggs, avgBirds, 7) : 0;
+            console.log(`Debug laying rate - Week: ${week}, Eggs: ${totalEggs}, Birds: ${avgBirds}, Rate: ${layingRate}%`);
+            return layingRate;
         });
 
         const chartData = {
@@ -455,8 +457,8 @@ class Analytics {
                     type: 'linear',
                     display: true,
                     position: 'right',
-                    min: 0,
-                    max: 100,
+                    beginAtZero: true,
+                    suggestedMax: 100,
                     title: {
                         display: true,
                         text: 'Laying Rate (%)'
@@ -464,6 +466,11 @@ class Analytics {
                     grid: {
                         drawOnChartArea: false,
                     },
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
                 }
             }
         };
@@ -667,8 +674,8 @@ class Analytics {
                     type: 'linear',
                     display: true,
                     position: 'right',
-                    min: 0,
-                    max: 100,
+                    beginAtZero: true,
+                    suggestedMax: 100,
                     title: {
                         display: true,
                         text: 'Mortality Rate (%)'
@@ -676,6 +683,11 @@ class Analytics {
                     grid: {
                         drawOnChartArea: false,
                     },
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
                 }
             }
         };
