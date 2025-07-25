@@ -15,7 +15,7 @@ class CageDetail {
 
             this.cycle = await db.get('cycles', this.cage.cycleId);
             this.productionLogs = await db.getByIndex('productionLogs', 'cageId', this.cage.id);
-            this.feedLogs = await db.getByIndex('feedLogs', 'cageId', this.cage.id);
+            this.feedLogs = await db.getByIndex('feedLogs', 'cycleId', this.cage.cycleId);
             
             // Sort logs by date (newest first)
             this.productionLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -301,7 +301,7 @@ class CageDetail {
                 <div class="col-lg-4">
                     <div class="card">
                         <div class="card-header">
-                            <h6 class="mb-0">Feed History</h6>
+                            <h6 class="mb-0">Feed History (Cycle Level)</h6>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -318,7 +318,7 @@ class CageDetail {
                                     </tbody>
                                 </table>
                             </div>
-                            ${this.feedLogs.length === 0 ? '<div class="p-4 text-center text-muted">No feed data yet</div>' : ''}
+                            ${this.feedLogs.length === 0 ? '<div class="p-4 text-center text-muted">No cycle feed data yet. <br><small>Feed is managed at cycle level for entire flock.</small></div>' : ''}
                         </div>
                     </div>
                 </div>
@@ -348,7 +348,7 @@ class CageDetail {
         return `
             <tr>
                 <td>${new Date(log.date).toLocaleDateString()}</td>
-                <td>${log.amount || 0}</td>
+                <td>${log.feedConsumed || log.amount || 0}</td>
                 <td>${log.cost ? '₵' + log.cost.toFixed(2) : '-'}</td>
             </tr>
         `;
