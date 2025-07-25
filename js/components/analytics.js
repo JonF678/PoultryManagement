@@ -455,6 +455,8 @@ class Analytics {
                     type: 'linear',
                     display: true,
                     position: 'right',
+                    min: 0,
+                    max: 100,
                     title: {
                         display: true,
                         text: 'Laying Rate (%)'
@@ -665,6 +667,8 @@ class Analytics {
                     type: 'linear',
                     display: true,
                     position: 'right',
+                    min: 0,
+                    max: 100,
                     title: {
                         display: true,
                         text: 'Mortality Rate (%)'
