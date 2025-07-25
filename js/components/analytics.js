@@ -1024,7 +1024,8 @@ class Analytics {
     }
 
     refreshChart() {
-        this.loadChart();
+        // Re-load the charts with updated time period
+        this.loadMetricBasedChart();
     }
 
     refreshAnalytics() {
