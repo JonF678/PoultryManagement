@@ -219,7 +219,17 @@ class ChartManager {
         container.appendChild(canvas);
 
         const chartData = {
-            labels: productionData.map(d => new Date(d.date).toLocaleDateString()),
+            labels: productionData.map(d => {
+                // Use Calculations.formatDate if available, otherwise use dd/mm/yyyy format
+                if (typeof Calculations !== 'undefined' && Calculations.formatDate) {
+                    return Calculations.formatDate(d.date);
+                }
+                const date = new Date(d.date);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            }),
             datasets: [
                 {
                     label: 'Eggs Collected',
@@ -255,7 +265,17 @@ class ChartManager {
         container.appendChild(canvas);
 
         const chartData = {
-            labels: feedData.map(d => new Date(d.date).toLocaleDateString()),
+            labels: feedData.map(d => {
+                // Use Calculations.formatDate if available, otherwise use dd/mm/yyyy format
+                if (typeof Calculations !== 'undefined' && Calculations.formatDate) {
+                    return Calculations.formatDate(d.date);
+                }
+                const date = new Date(d.date);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            }),
             datasets: [
                 {
                     label: 'Feed Consumed (kg)',

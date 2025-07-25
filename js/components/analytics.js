@@ -397,34 +397,28 @@ class Analytics {
             return;
         }
         
-        const groupedData = Calculations.groupDataByPeriod(filteredLogs, 'week');
+        // Sort logs by date for daily display
+        const sortedLogs = filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
         
-        const labels = Object.keys(groupedData).sort();
-        const productionData = labels.map(week => {
-            const weekLogs = groupedData[week];
-            return weekLogs.reduce((sum, log) => {
-                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
-                return sum + eggs;
-            }, 0);
+        const labels = sortedLogs.map(log => log.date);
+        const productionData = sortedLogs.map(log => {
+            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
+            return eggs;
         });
 
-        const layingData = labels.map(week => {
-            const weekLogs = groupedData[week];
-            const totalEggs = weekLogs.reduce((sum, log) => {
-                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
-                return sum + eggs;
-            }, 0);
-            const avgBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
-            const layingRate = avgBirds > 0 ? Calculations.calculateLayingPercentage(totalEggs, avgBirds, 7) : 0;
-            console.log(`Debug laying rate - Week: ${week}, Eggs: ${totalEggs}, Birds: ${avgBirds}, Rate: ${layingRate}%`);
+        const layingData = sortedLogs.map(log => {
+            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
+            const totalBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
+            const layingRate = totalBirds > 0 ? Calculations.calculateLayingPercentage(eggs, totalBirds, 1) : 0;
+            console.log(`Debug laying rate - Date: ${log.date}, Eggs: ${eggs}, Birds: ${totalBirds}, Rate: ${layingRate}%`);
             return layingRate;
         });
 
         const chartData = {
-            labels: labels.map(label => new Date(label).toLocaleDateString()),
+            labels: labels.map(label => Calculations.formatDate(label)),
             datasets: [
                 {
-                    label: 'Weekly Production (Eggs)',
+                    label: 'Daily Production (Eggs)',
                     data: productionData,
                     color: '#2563eb',
                     fill: true,
@@ -543,18 +537,16 @@ class Analytics {
             return;
         }
         
-        const groupedFeedData = Calculations.groupDataByPeriod(filteredFeedLogs, 'week');
+        // Sort logs by date for daily display
+        const sortedFeedLogs = filteredFeedLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
         
-        const labels = Object.keys(groupedFeedData).sort();
-        const feedData = labels.map(week => {
-            const weekLogs = groupedFeedData[week];
-            return weekLogs.reduce((sum, log) => sum + (log.feedConsumed || log.amount || 0), 0);
-        });
+        const labels = sortedFeedLogs.map(log => log.date);
+        const feedData = sortedFeedLogs.map(log => log.feedConsumed || log.amount || 0);
 
         const chartData = {
-            labels: labels.map(label => new Date(label).toLocaleDateString()),
+            labels: labels.map(label => Calculations.formatDate(label)),
             datasets: [{
-                label: 'Weekly Feed (kg)',
+                label: 'Daily Feed (kg)',
                 data: feedData,
                 color: '#f59e0b'
             }]
@@ -591,7 +583,7 @@ class Analytics {
         const movingAvg = Calculations.calculateMovingAverage(efficiencyData, 7);
 
         const chartData = {
-            labels: recentLogs.slice(-movingAvg.length).map(log => new Date(log.date).toLocaleDateString()),
+            labels: recentLogs.slice(-movingAvg.length).map(log => Calculations.formatDate(log.date)),
             datasets: [
                 {
                     label: 'Daily Efficiency',
@@ -627,26 +619,23 @@ class Analytics {
             return;
         }
 
-        const groupedData = Calculations.groupDataByPeriod(filteredLogs, 'week');
-        const labels = Object.keys(groupedData).sort();
+        // Sort logs by date for daily display
+        const sortedLogs = filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const labels = sortedLogs.map(log => log.date);
         
-        const mortalityData = labels.map(week => {
-            const weekLogs = groupedData[week];
-            return weekLogs.reduce((sum, log) => sum + (log.mortality || 0), 0);
-        });
+        const mortalityData = sortedLogs.map(log => log.mortality || 0);
 
-        const mortalityRateData = labels.map(week => {
-            const weekLogs = groupedData[week];
-            const totalMortality = weekLogs.reduce((sum, log) => sum + (log.mortality || 0), 0);
-            const avgBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
-            return avgBirds > 0 ? (totalMortality / avgBirds) * 100 : 0;
+        const mortalityRateData = sortedLogs.map(log => {
+            const mortality = log.mortality || 0;
+            const totalBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
+            return totalBirds > 0 ? (mortality / totalBirds) * 100 : 0;
         });
 
         const chartData = {
-            labels: labels.map(label => new Date(label).toLocaleDateString()),
+            labels: labels.map(label => Calculations.formatDate(label)),
             datasets: [
                 {
-                    label: 'Weekly Mortality Count',
+                    label: 'Daily Mortality Count',
                     data: mortalityData,
                     color: '#ef4444',
                     fill: true,

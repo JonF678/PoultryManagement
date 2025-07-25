@@ -161,7 +161,17 @@ Preferred communication style: Simple, everyday language.
   - **Enhanced Feedback**: Import results now show count of newly created cycles and cages
   - **User-Friendly**: No more "invalid reference" errors - any cycle or cage name in CSV will work
 
-### July 25, 2025 - Analytics Chart Enhancement with Dual Axes
+### July 25, 2025 - Daily Metrics and UK Date Format Implementation
+- **Daily Analytics Charts**: Changed from weekly to daily metrics for better granular tracking
+  - **Production Chart**: Now shows daily egg production and laying rate percentages
+  - **Mortality Chart**: Now shows daily mortality counts and mortality rate percentages
+  - **Feed Chart**: Now shows daily feed consumption instead of weekly aggregates
+  - **Efficiency Chart**: Maintained daily efficiency with 7-day moving average
+- **UK Date Format**: Implemented dd/mm/yyyy date format throughout the entire application
+  - **Date Utility Function**: Added `Calculations.formatDate()` for consistent formatting
+  - **Chart Labels**: All chart labels now use dd/mm/yyyy format
+  - **Component Updates**: Updated all components using `.toLocaleDateString()` to use new format
+  - **User-Friendly Display**: Consistent date display across analytics, sales, expenses, and vaccination records
 - **Enhanced Analytics Charts**: Added secondary y-axes for percentage-based metrics in production and mortality charts
   - **Production Chart**: Primary axis shows egg production counts, secondary axis shows laying rate percentages
   - **Mortality Chart**: Primary axis shows mortality counts, secondary axis shows mortality rate percentages
