@@ -422,22 +422,52 @@ class Analytics {
             labels: labels.map(label => new Date(label).toLocaleDateString()),
             datasets: [
                 {
-                    label: 'Weekly Production',
+                    label: 'Weekly Production (Eggs)',
                     data: productionData,
-                    color: '#2563eb',
-                    fill: true
+                    borderColor: '#2563eb',
+                    backgroundColor: '#2563eb20',
+                    fill: true,
+                    yAxisID: 'y'
                 },
                 {
-                    label: 'Laying Rate %',
+                    label: 'Laying Rate (%)',
                     data: layingData,
-                    color: '#10b981',
-                    fill: false
+                    borderColor: '#10b981',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    yAxisID: 'y1'
                 }
             ]
         };
 
+        const chartOptions = {
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Eggs Produced'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Laying Rate (%)'
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                }
+            }
+        };
+
         setTimeout(() => {
-            chartManager.createLineChart('productionTrendChart', chartData);
+            chartManager.createLineChart('productionTrendChart', chartData, chartOptions);
         }, 100);
     }
 
@@ -604,20 +634,50 @@ class Analytics {
                 {
                     label: 'Weekly Mortality Count',
                     data: mortalityData,
-                    color: '#ef4444',
-                    fill: true
+                    borderColor: '#ef4444',
+                    backgroundColor: '#ef444420',
+                    fill: true,
+                    yAxisID: 'y'
                 },
                 {
-                    label: 'Mortality Rate %',
+                    label: 'Mortality Rate (%)',
                     data: mortalityRateData,
-                    color: '#f97316',
-                    fill: false
+                    borderColor: '#f97316',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    yAxisID: 'y1'
                 }
             ]
         };
 
+        const chartOptions = {
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Mortality Count'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Mortality Rate (%)'
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                }
+            }
+        };
+
         setTimeout(() => {
-            chartManager.createLineChart('productionTrendChart', chartData);
+            chartManager.createLineChart('productionTrendChart', chartData, chartOptions);
         }, 100);
     }
 

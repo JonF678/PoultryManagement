@@ -161,6 +161,14 @@ Preferred communication style: Simple, everyday language.
   - **Enhanced Feedback**: Import results now show count of newly created cycles and cages
   - **User-Friendly**: No more "invalid reference" errors - any cycle or cage name in CSV will work
 
+### July 25, 2025 - Analytics Chart Enhancement with Dual Axes
+- **Enhanced Analytics Charts**: Added secondary y-axes for percentage-based metrics in production and mortality charts
+  - **Production Chart**: Primary axis shows egg production counts, secondary axis shows laying rate percentages
+  - **Mortality Chart**: Primary axis shows mortality counts, secondary axis shows mortality rate percentages
+  - **Improved Visualization**: Makes it much easier to compare absolute values with percentage rates simultaneously
+  - **Consistent Feed Data**: Fixed feed history consistency between cage detail views and cycle feed management
+  - **Cycle-Level Feed Tracking**: All components now properly display cycle-level feed data instead of cage-level data
+
 ### July 22, 2025 - Critical Feed Import Bug Fix and Migration Completion
 - **Critical Feed Import Bug Fix**: Resolved major issue preventing feed consumption data from importing and displaying correctly
   - **Missing Import Function**: Added missing `importFeedLogs` function to CSV handler
