@@ -10,6 +10,7 @@ class Analytics {
         this.currentFilter = 'all';
         this.dateRange = 30; // days
         this.metricType = 'feed'; // Default metric type
+        this.timePeriod = 'day'; // day, week, month, year
     }
 
     async init(cycleId = null) {
@@ -127,7 +128,16 @@ class Analytics {
                                 <option value="all">All time</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <label for="timePeriod" class="form-label">Time Period</label>
+                            <select class="form-select" id="timePeriod" onchange="analytics.updateTimePeriod(this.value)">
+                                <option value="day" selected>Daily</option>
+                                <option value="week">Weekly</option>
+                                <option value="month">Monthly</option>
+                                <option value="year">Yearly</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
                             <label for="metricType" class="form-label">Primary Metric</label>
                             <select class="form-select" id="metricType" onchange="analytics.updateMetricType(this.value)">
                                 <option value="production">Egg Production</option>
@@ -137,7 +147,7 @@ class Analytics {
                                 <option value="profit">Profit Analysis</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <button class="btn btn-primary mt-4" onclick="analytics.refreshAnalytics()">
                                 <i class="fas fa-sync-alt me-2"></i>Refresh
                             </button>
@@ -333,10 +343,15 @@ class Analytics {
     }
 
     loadCharts() {
-        // Update the selected value in the dropdown
+        // Update the selected values in the dropdowns
         const metricSelect = document.getElementById('metricType');
         if (metricSelect) {
             metricSelect.value = this.metricType;
+        }
+
+        const timePeriodSelect = document.getElementById('timePeriod');
+        if (timePeriodSelect) {
+            timePeriodSelect.value = this.timePeriod;
         }
 
         // Load the main trend chart based on selected metric
@@ -347,18 +362,18 @@ class Analytics {
     }
 
     loadMetricBasedChart() {
-        // Update chart title based on metric type
+        // Update chart title based on metric type and time period
         const chartTitles = {
-            'production': 'Egg Production Trends',
-            'efficiency': 'Laying Efficiency Trends',
-            'feed': 'Feed Consumption Trends',
-            'mortality': 'Mortality Trends',
-            'profit': 'Profit Analysis'
+            'production': `Egg Production Trends (${this.timePeriod.charAt(0).toUpperCase() + this.timePeriod.slice(1)}ly)`,
+            'efficiency': `Laying Efficiency Trends (${this.timePeriod.charAt(0).toUpperCase() + this.timePeriod.slice(1)}ly)`,
+            'feed': `Feed Consumption Trends (${this.timePeriod.charAt(0).toUpperCase() + this.timePeriod.slice(1)}ly)`,
+            'mortality': `Mortality Trends (${this.timePeriod.charAt(0).toUpperCase() + this.timePeriod.slice(1)}ly)`,
+            'profit': `Profit Analysis (${this.timePeriod.charAt(0).toUpperCase() + this.timePeriod.slice(1)}ly)`
         };
         
         const titleElement = document.getElementById('main-chart-title');
         if (titleElement) {
-            titleElement.textContent = chartTitles[this.metricType] || 'Production Trends';
+            titleElement.textContent = chartTitles[this.metricType] || `Production Trends (${this.timePeriod.charAt(0).toUpperCase() + this.timePeriod.slice(1)}ly)`;
         }
 
         switch (this.metricType) {
@@ -397,28 +412,36 @@ class Analytics {
             return;
         }
         
-        // Sort logs by date for daily display
-        const sortedLogs = filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+        // Group data by selected time period
+        const groupedData = Calculations.groupDataByPeriod(filteredLogs, this.timePeriod);
+        const labels = Object.keys(groupedData).sort();
         
-        const labels = sortedLogs.map(log => log.date);
-        const productionData = sortedLogs.map(log => {
-            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
-            return eggs;
+        const productionData = labels.map(period => {
+            const periodLogs = groupedData[period];
+            return periodLogs.reduce((sum, log) => {
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
+                return sum + eggs;
+            }, 0);
         });
 
-        const layingData = sortedLogs.map(log => {
-            const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
+        const layingData = labels.map(period => {
+            const periodLogs = groupedData[period];
+            const totalEggs = periodLogs.reduce((sum, log) => {
+                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
+                return sum + eggs;
+            }, 0);
             const totalBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
-            const layingRate = totalBirds > 0 ? Calculations.calculateLayingPercentage(eggs, totalBirds, 1) : 0;
-            console.log(`Debug laying rate - Date: ${log.date}, Eggs: ${eggs}, Birds: ${totalBirds}, Rate: ${layingRate}%`);
+            const daysInPeriod = this.timePeriod === 'day' ? 1 : this.timePeriod === 'week' ? 7 : this.timePeriod === 'month' ? 30 : 365;
+            const layingRate = totalBirds > 0 ? Calculations.calculateLayingPercentage(totalEggs, totalBirds, daysInPeriod) : 0;
+            console.log(`Debug laying rate - Period: ${period}, Eggs: ${totalEggs}, Birds: ${totalBirds}, Days: ${daysInPeriod}, Rate: ${layingRate}%`);
             return layingRate;
         });
 
         const chartData = {
-            labels: labels.map(label => Calculations.formatDate(label)),
+            labels: labels.map(label => Calculations.formatDate(label, this.timePeriod)),
             datasets: [
                 {
-                    label: 'Daily Production (Eggs)',
+                    label: `${this.timePeriod.charAt(0).toUpperCase() + this.timePeriod.slice(1)}ly Production (Eggs)`,
                     data: productionData,
                     color: '#2563eb',
                     fill: true,
@@ -537,16 +560,19 @@ class Analytics {
             return;
         }
         
-        // Sort logs by date for daily display
-        const sortedFeedLogs = filteredFeedLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+        // Group data by selected time period
+        const groupedFeedData = Calculations.groupDataByPeriod(filteredFeedLogs, this.timePeriod);
+        const labels = Object.keys(groupedFeedData).sort();
         
-        const labels = sortedFeedLogs.map(log => log.date);
-        const feedData = sortedFeedLogs.map(log => log.feedConsumed || log.amount || 0);
+        const feedData = labels.map(period => {
+            const periodLogs = groupedFeedData[period];
+            return periodLogs.reduce((sum, log) => sum + (log.feedConsumed || log.amount || 0), 0);
+        });
 
         const chartData = {
-            labels: labels.map(label => Calculations.formatDate(label)),
+            labels: labels.map(label => Calculations.formatDate(label, this.timePeriod)),
             datasets: [{
-                label: 'Daily Feed (kg)',
+                label: `${this.timePeriod.charAt(0).toUpperCase() + this.timePeriod.slice(1)}ly Feed (kg)`,
                 data: feedData,
                 color: '#f59e0b'
             }]
@@ -619,23 +645,27 @@ class Analytics {
             return;
         }
 
-        // Sort logs by date for daily display
-        const sortedLogs = filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
-        const labels = sortedLogs.map(log => log.date);
+        // Group data by selected time period
+        const groupedData = Calculations.groupDataByPeriod(filteredLogs, this.timePeriod);
+        const labels = Object.keys(groupedData).sort();
         
-        const mortalityData = sortedLogs.map(log => log.mortality || 0);
+        const mortalityData = labels.map(period => {
+            const periodLogs = groupedData[period];
+            return periodLogs.reduce((sum, log) => sum + (log.mortality || 0), 0);
+        });
 
-        const mortalityRateData = sortedLogs.map(log => {
-            const mortality = log.mortality || 0;
+        const mortalityRateData = labels.map(period => {
+            const periodLogs = groupedData[period];
+            const totalMortality = periodLogs.reduce((sum, log) => sum + (log.mortality || 0), 0);
             const totalBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
-            return totalBirds > 0 ? (mortality / totalBirds) * 100 : 0;
+            return totalBirds > 0 ? (totalMortality / totalBirds) * 100 : 0;
         });
 
         const chartData = {
-            labels: labels.map(label => Calculations.formatDate(label)),
+            labels: labels.map(label => Calculations.formatDate(label, this.timePeriod)),
             datasets: [
                 {
-                    label: 'Daily Mortality Count',
+                    label: `${this.timePeriod.charAt(0).toUpperCase() + this.timePeriod.slice(1)}ly Mortality Count`,
                     data: mortalityData,
                     color: '#ef4444',
                     fill: true,
@@ -983,9 +1013,18 @@ class Analytics {
         }
     }
 
+    updateTimePeriod(period) {
+        this.timePeriod = period;
+        this.refreshChart();
+    }
+
     updateMetricType(type) {
         this.metricType = type;
-        this.refreshAnalytics();
+        this.refreshChart();
+    }
+
+    refreshChart() {
+        this.loadChart();
     }
 
     refreshAnalytics() {

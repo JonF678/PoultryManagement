@@ -161,14 +161,20 @@ Preferred communication style: Simple, everyday language.
   - **Enhanced Feedback**: Import results now show count of newly created cycles and cages
   - **User-Friendly**: No more "invalid reference" errors - any cycle or cage name in CSV will work
 
-### July 25, 2025 - Daily Metrics and UK Date Format Implementation
+### July 25, 2025 - Time Period Filter and Enhanced Analytics Implementation
+- **Time Period Filter**: Added comprehensive time period filtering for analytics charts
+  - **Filter Options**: Users can now view metrics by days, weeks, months, and years
+  - **Dynamic Grouping**: Data automatically groups by selected time period using `Calculations.groupDataByPeriod()`
+  - **Chart Labels**: Labels adapt to time period (daily: dd/mm/yyyy, monthly: mm/yyyy, yearly: yyyy)
+  - **Dynamic Titles**: Chart titles update to reflect selected time period (e.g., "Daily Production", "Weekly Production")
+  - **User Interface**: Added time period dropdown in analytics filter section
 - **Daily Analytics Charts**: Changed from weekly to daily metrics for better granular tracking
   - **Production Chart**: Now shows daily egg production and laying rate percentages
   - **Mortality Chart**: Now shows daily mortality counts and mortality rate percentages
   - **Feed Chart**: Now shows daily feed consumption instead of weekly aggregates
   - **Efficiency Chart**: Maintained daily efficiency with 7-day moving average
 - **UK Date Format**: Implemented dd/mm/yyyy date format throughout the entire application
-  - **Date Utility Function**: Added `Calculations.formatDate()` for consistent formatting
+  - **Date Utility Function**: Enhanced `Calculations.formatDate()` for consistent formatting with period support
   - **Chart Labels**: All chart labels now use dd/mm/yyyy format
   - **Component Updates**: Updated all components using `.toLocaleDateString()` to use new format
   - **User-Friendly Display**: Consistent date display across analytics, sales, expenses, and vaccination records

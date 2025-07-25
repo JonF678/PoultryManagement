@@ -106,12 +106,22 @@ class Calculations {
         return `${currency}${value.toFixed(2)}`;
     }
 
-    static formatDate(date) {
+    static formatDate(date, period = 'day') {
         const d = new Date(date);
         const day = String(d.getDate()).padStart(2, '0');
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const year = d.getFullYear();
-        return `${day}/${month}/${year}`;
+        
+        switch (period) {
+            case 'year':
+                return `${year}`;
+            case 'month':
+                return `${month}/${year}`;
+            case 'week':
+                return `${day}/${month}/${year}`;
+            default:
+                return `${day}/${month}/${year}`;
+        }
     }
 
     static formatWeight(value, unit = 'kg') {
@@ -137,6 +147,9 @@ class Calculations {
                 case 'quarter':
                     const quarter = Math.floor(date.getMonth() / 3) + 1;
                     key = `${date.getFullYear()}-Q${quarter}`;
+                    break;
+                case 'year':
+                    key = `${date.getFullYear()}-01-01`;
                     break;
                 default:
                     key = item.date;
