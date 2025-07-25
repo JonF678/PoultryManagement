@@ -137,12 +137,13 @@ class ChartManager {
                 label: dataset.label || `Dataset ${index + 1}`,
                 data: dataset.data || [],
                 borderColor: dataset.color || this.defaultColors[index % this.defaultColors.length],
-                backgroundColor: this.hexToRgba(dataset.color || this.defaultColors[index % this.defaultColors.length], 0.1),
+                backgroundColor: dataset.backgroundColor || this.hexToRgba(dataset.color || this.defaultColors[index % this.defaultColors.length], 0.1),
                 borderWidth: 2,
                 fill: dataset.fill || false,
                 tension: 0.4,
                 pointRadius: 4,
-                pointHoverRadius: 6
+                pointHoverRadius: 6,
+                yAxisID: dataset.yAxisID // Preserve yAxisID for dual axis charts
             })) || []
         };
     }

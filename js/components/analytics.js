@@ -426,16 +426,14 @@ class Analytics {
                 {
                     label: 'Weekly Production (Eggs)',
                     data: productionData,
-                    borderColor: '#2563eb',
-                    backgroundColor: '#2563eb20',
+                    color: '#2563eb',
                     fill: true,
                     yAxisID: 'y'
                 },
                 {
                     label: 'Laying Rate (%)',
                     data: layingData,
-                    borderColor: '#10b981',
-                    backgroundColor: 'transparent',
+                    color: '#10b981',
                     fill: false,
                     yAxisID: 'y1'
                 }
@@ -474,6 +472,13 @@ class Analytics {
                 }
             }
         };
+
+        console.log('Production Chart Data:', {
+            labels: chartData.labels,
+            productionData: productionData,
+            layingData: layingData,
+            chartOptions: chartOptions
+        });
 
         setTimeout(() => {
             chartManager.createLineChart('productionTrendChart', chartData, chartOptions);
@@ -643,16 +648,14 @@ class Analytics {
                 {
                     label: 'Weekly Mortality Count',
                     data: mortalityData,
-                    borderColor: '#ef4444',
-                    backgroundColor: '#ef444420',
+                    color: '#ef4444',
                     fill: true,
                     yAxisID: 'y'
                 },
                 {
                     label: 'Mortality Rate (%)',
                     data: mortalityRateData,
-                    borderColor: '#f97316',
-                    backgroundColor: 'transparent',
+                    color: '#f97316',
                     fill: false,
                     yAxisID: 'y1'
                 }
