@@ -118,7 +118,9 @@ class Calculations {
             case 'month':
                 return `${month}/${year}`;
             case 'week':
+                // For weekly, show week starting date
                 return `${day}/${month}/${year}`;
+            case 'day':
             default:
                 return `${day}/${month}/${year}`;
         }
@@ -136,13 +138,16 @@ class Calculations {
             let key;
             
             switch (period) {
+                case 'day':
+                    key = item.date;
+                    break;
                 case 'week':
                     const weekStart = new Date(date);
                     weekStart.setDate(date.getDate() - date.getDay());
                     key = weekStart.toISOString().split('T')[0];
                     break;
                 case 'month':
-                    key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
                     break;
                 case 'quarter':
                     const quarter = Math.floor(date.getMonth() / 3) + 1;

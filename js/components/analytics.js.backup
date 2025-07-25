@@ -413,31 +413,32 @@ class Analytics {
         }
         
         // Group data by selected time period
-        const groupedData = Calculations.groupDataByPeriod(filteredLogs, this.timePeriod);
-        const labels = Object.keys(groupedData).sort();
-        
-        const productionData = labels.map(period => {
-            const periodLogs = groupedData[period];
-            return periodLogs.reduce((sum, log) => {
-                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
-                return sum + eggs;
-            }, 0);
-        });
+        try {
+            const groupedData = Calculations.groupDataByPeriod(filteredLogs, this.timePeriod);
+            const labels = Object.keys(groupedData).sort();
+            
+            const productionData = labels.map(period => {
+                const periodLogs = groupedData[period];
+                return periodLogs.reduce((sum, log) => {
+                    const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
+                    return sum + eggs;
+                }, 0);
+            });
 
-        const layingData = labels.map(period => {
-            const periodLogs = groupedData[period];
-            const totalEggs = periodLogs.reduce((sum, log) => {
-                const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
-                return sum + eggs;
-            }, 0);
-            const totalBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
-            const daysInPeriod = this.timePeriod === 'day' ? 1 : this.timePeriod === 'week' ? 7 : this.timePeriod === 'month' ? 30 : 365;
-            const layingRate = totalBirds > 0 ? Calculations.calculateLayingPercentage(totalEggs, totalBirds, daysInPeriod) : 0;
-            console.log(`Debug laying rate - Period: ${period}, Eggs: ${totalEggs}, Birds: ${totalBirds}, Days: ${daysInPeriod}, Rate: ${layingRate}%`);
-            return layingRate;
-        });
+            const layingData = labels.map(period => {
+                const periodLogs = groupedData[period];
+                const totalEggs = periodLogs.reduce((sum, log) => {
+                    const eggs = log.eggsTrays ? log.eggsTrays * 30 : (log.eggsCollected || log.eggsProduced || 0);
+                    return sum + eggs;
+                }, 0);
+                const totalBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
+                const daysInPeriod = this.timePeriod === 'day' ? 1 : this.timePeriod === 'week' ? 7 : this.timePeriod === 'month' ? 30 : 365;
+                const layingRate = totalBirds > 0 ? Calculations.calculateLayingPercentage(totalEggs, totalBirds, daysInPeriod) : 0;
+                console.log(`Debug laying rate - Period: ${period}, Eggs: ${totalEggs}, Birds: ${totalBirds}, Days: ${daysInPeriod}, Rate: ${layingRate}%`);
+                return layingRate;
+            });
 
-        const chartData = {
+            const chartData = {
                 labels: labels.map(label => Calculations.formatDate(label, this.timePeriod)),
                 datasets: [
                     {
@@ -561,15 +562,16 @@ class Analytics {
         }
         
         // Group data by selected time period
-        const groupedFeedData = Calculations.groupDataByPeriod(filteredFeedLogs, this.timePeriod);
-        const labels = Object.keys(groupedFeedData).sort();
-        
-        const feedData = labels.map(period => {
-            const periodLogs = groupedFeedData[period];
-            return periodLogs.reduce((sum, log) => sum + (log.feedConsumed || log.amount || 0), 0);
-        });
+        try {
+            const groupedFeedData = Calculations.groupDataByPeriod(filteredFeedLogs, this.timePeriod);
+            const labels = Object.keys(groupedFeedData).sort();
+            
+            const feedData = labels.map(period => {
+                const periodLogs = groupedFeedData[period];
+                return periodLogs.reduce((sum, log) => sum + (log.feedConsumed || log.amount || 0), 0);
+            });
 
-        const chartData = {
+            const chartData = {
                 labels: labels.map(label => Calculations.formatDate(label, this.timePeriod)),
                 datasets: [{
                     label: `${this.timePeriod.charAt(0).toUpperCase() + this.timePeriod.slice(1)}ly Feed (kg)`,
@@ -578,9 +580,19 @@ class Analytics {
                 }]
             };
 
-        setTimeout(() => {
-            chartManager.createBarChart('productionTrendChart', chartData);
-        }, 100);
+            setTimeout(() => {
+                chartManager.createBarChart('productionTrendChart', chartData);
+            }, 100);
+        } catch (error) {
+            console.error('Error in loadFeedChart:', error);
+            document.getElementById('productionTrendChart').parentElement.innerHTML = `
+                <div class="text-center py-4 text-danger">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <p>Error loading feed chart</p>
+                    <small>Please try refreshing or contact support</small>
+                </div>
+            `;
+        }
     }
 
     loadEfficiencyChart() {
@@ -646,22 +658,23 @@ class Analytics {
         }
 
         // Group data by selected time period
-        const groupedData = Calculations.groupDataByPeriod(filteredLogs, this.timePeriod);
-        const labels = Object.keys(groupedData).sort();
-        
-        const mortalityData = labels.map(period => {
-            const periodLogs = groupedData[period];
-            return periodLogs.reduce((sum, log) => sum + (log.mortality || 0), 0);
-        });
+        try {
+            const groupedData = Calculations.groupDataByPeriod(filteredLogs, this.timePeriod);
+            const labels = Object.keys(groupedData).sort();
+            
+            const mortalityData = labels.map(period => {
+                const periodLogs = groupedData[period];
+                return periodLogs.reduce((sum, log) => sum + (log.mortality || 0), 0);
+            });
 
-        const mortalityRateData = labels.map(period => {
-            const periodLogs = groupedData[period];
-            const totalMortality = periodLogs.reduce((sum, log) => sum + (log.mortality || 0), 0);
-            const totalBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
-            return totalBirds > 0 ? (totalMortality / totalBirds) * 100 : 0;
-        });
+            const mortalityRateData = labels.map(period => {
+                const periodLogs = groupedData[period];
+                const totalMortality = periodLogs.reduce((sum, log) => sum + (log.mortality || 0), 0);
+                const totalBirds = this.cages.reduce((sum, cage) => sum + (cage.currentBirds || 0), 0);
+                return totalBirds > 0 ? (totalMortality / totalBirds) * 100 : 0;
+            });
 
-        const chartData = {
+            const chartData = {
                 labels: labels.map(label => Calculations.formatDate(label, this.timePeriod)),
                 datasets: [
                     {
