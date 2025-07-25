@@ -185,8 +185,8 @@ class CSVHandler {
         const csvData = feedLogs.map(log => ({
             'Date': log.date,
             'Cycle': cycleMap[log.cycleId] || log.cycleId,
-            'Feed_Consumed_Kg': log.feedConsumed || 0,
-            'Feed_Cost': log.feedCost || 0,
+            'Feed_Consumed_Kg': log.amount || 0,
+            'Feed_Cost': log.cost || 0,
             'Notes': log.notes || ''
         }));
 
@@ -432,8 +432,8 @@ class CSVHandler {
                 const feedLog = {
                     cycleId: cycleId,
                     date: row.Date || row.date,
-                    feedConsumed: parseFloat(row.Feed_Consumed_Kg || row.feedConsumed) || 0,
-                    feedCost: parseFloat(row.Feed_Cost || row.feedCost) || 0,
+                    amount: parseFloat(row.Feed_Consumed_Kg || row.feedConsumed || row.amount) || 0,
+                    cost: parseFloat(row.Feed_Cost || row.feedCost || row.cost) || 0,
                     notes: row.Notes || row.notes || '',
                     createdAt: new Date().toISOString()
                 };
