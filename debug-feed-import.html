@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Feed Import</title>
+    <script src="js/db.js"></script>
+    <script src="js/utils/csv-handler.js"></script>
+</head>
+<body>
+    <h1>Debug Feed Import</h1>
+    <textarea id="csvInput" rows="10" cols="60" placeholder="Paste your CSV content here">Date,Cycle,Feed_Consumed_Kg,Feed_Cost,Notes
+2025-07-27,Sample Cycle,10.5,25.00,Test feed entry</textarea>
+    <br><br>
+    <button onclick="testImport()">Test Import</button>
+    <div id="results"></div>
+
+    <script>
+        async function testImport() {
+            try {
+                // Initialize database
+                await db.init();
+                
+                // Initialize CSV handler
+                const csvHandler = new CSVHandler();
+                await csvHandler.init(db);
+                
+                const csvText = document.getElementById('csvInput').value;
+                console.log('CSV Text:', csvText);
+                
+                // Parse CSV
+                const parsedData = csvHandler.parseCSV(csvText);
+                console.log('Parsed Data:', parsedData);
+                
+                // Try import
+                const results = await csvHandler.importFeedLogs(csvText);
+                console.log('Import Results:', results);
+                
+                document.getElementById('results').innerHTML = `
+                    <h3>Results:</h3>
+                    <p>Success: ${results.success}</p>
+                    <p>Errors: ${results.errors.length}</p>
+                    <p>New Cycles: ${results.newCycles}</p>
+                    <pre>${JSON.stringify(results, null, 2)}</pre>
+                `;
+                
+                // Check what's actually in the database
+                const feedLogs = await db.getAll('feedLogs');
+                console.log('All Feed Logs in DB:', feedLogs);
+                
+            } catch (error) {
+                console.error('Test error:', error);
+                document.getElementById('results').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
