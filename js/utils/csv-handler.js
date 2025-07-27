@@ -411,7 +411,10 @@ class CSVHandler {
 
         for (const row of data) {
             try {
+                console.log('Processing row:', row);
+                
                 const cycleName = row.Cycle || row.cycleId;
+                console.log('Cycle name:', cycleName);
                 
                 // Get or create cycle
                 let cycleId = cycleMap[cycleName];
@@ -427,13 +430,16 @@ class CSVHandler {
                     cycleId = await this.db.add('cycles', newCycle);
                     cycleMap[cycleName] = cycleId;
                     results.newCycles++;
+                    console.log('Created new cycle with ID:', cycleId);
                 }
 
                 const feedDate = row.Date || row.date;
+                console.log('Feed date:', feedDate);
                 
                 // Check if a feed log already exists for this cycle and date
                 const existingLogs = await this.db.getFeedLogs(cycleId);
                 const existingLog = existingLogs.find(log => log.date === feedDate);
+                console.log('Existing log found:', !!existingLog);
                 
                 const feedLogData = {
                     cycleId: cycleId,
@@ -443,19 +449,25 @@ class CSVHandler {
                     notes: row.Notes || row.notes || '',
                     updatedAt: new Date().toISOString()
                 };
+                
+                console.log('Feed log data to save:', feedLogData);
 
                 if (existingLog) {
                     // Update existing record
                     feedLogData.id = existingLog.id;
                     feedLogData.createdAt = existingLog.createdAt;
+                    console.log('Updating existing feed log with ID:', existingLog.id);
                     await this.db.update('feedLogs', feedLogData);
                 } else {
                     // Create new record
                     feedLogData.createdAt = new Date().toISOString();
-                    await this.db.addFeedLog(feedLogData);
+                    console.log('Creating new feed log');
+                    const newId = await this.db.addFeedLog(feedLogData);
+                    console.log('Created feed log with ID:', newId);
                 }
                 results.success++;
             } catch (error) {
+                console.error('Error processing row:', error, row);
                 results.errors.push(`Row ${data.indexOf(row) + 2}: ${error.message}`);
             }
         }
