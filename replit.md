@@ -185,6 +185,15 @@ Preferred communication style: Simple, everyday language.
   - **Consistent Feed Data**: Fixed feed history consistency between cage detail views and cycle feed management
   - **Cycle-Level Feed Tracking**: All components now properly display cycle-level feed data instead of cage-level data
 
+### July 27, 2025 - Complete Feed Data Import/Export Fix
+- **Feed CSV Export Issue Resolved**: Fixed critical field name mismatch preventing feed data from appearing in CSV exports
+  - **Export Function Fix**: Changed CSV export to use correct field names `amount` and `cost` instead of `feedConsumed` and `feedCost`
+  - **Import Function Fix**: Updated CSV import to handle both old and new field names for backward compatibility
+  - **Smart Import Enhancement**: Modified import function to update existing feed logs by date instead of creating duplicates
+  - **Duplicate Prevention**: Import now checks for existing feed logs on same date and cycle, updating them instead of duplicating
+  - **Complete Round-Trip**: Feed data can now be exported, modified in Excel, and imported back successfully
+  - **Analytics Compatibility**: Analytics component already had fallback logic to handle both field name formats
+
 ### July 22, 2025 - Critical Feed Import Bug Fix and Migration Completion
 - **Critical Feed Import Bug Fix**: Resolved major issue preventing feed consumption data from importing and displaying correctly
   - **Missing Import Function**: Added missing `importFeedLogs` function to CSV handler

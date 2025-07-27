@@ -429,16 +429,31 @@ class CSVHandler {
                     results.newCycles++;
                 }
 
-                const feedLog = {
+                const feedDate = row.Date || row.date;
+                
+                // Check if a feed log already exists for this cycle and date
+                const existingLogs = await this.db.getFeedLogs(cycleId);
+                const existingLog = existingLogs.find(log => log.date === feedDate);
+                
+                const feedLogData = {
                     cycleId: cycleId,
-                    date: row.Date || row.date,
+                    date: feedDate,
                     amount: parseFloat(row.Feed_Consumed_Kg || row.feedConsumed || row.amount) || 0,
                     cost: parseFloat(row.Feed_Cost || row.feedCost || row.cost) || 0,
                     notes: row.Notes || row.notes || '',
-                    createdAt: new Date().toISOString()
+                    updatedAt: new Date().toISOString()
                 };
 
-                await this.db.addFeedLog(feedLog);
+                if (existingLog) {
+                    // Update existing record
+                    feedLogData.id = existingLog.id;
+                    feedLogData.createdAt = existingLog.createdAt;
+                    await this.db.update('feedLogs', feedLogData);
+                } else {
+                    // Create new record
+                    feedLogData.createdAt = new Date().toISOString();
+                    await this.db.addFeedLog(feedLogData);
+                }
                 results.success++;
             } catch (error) {
                 results.errors.push(`Row ${data.indexOf(row) + 2}: ${error.message}`);
