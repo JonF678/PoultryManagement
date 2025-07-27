@@ -18,19 +18,24 @@ class CSVHandler {
         if (lines.length < 2) return [];
 
         const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        console.log('CSV Headers:', headers);
         const data = [];
 
         for (let i = 1; i < lines.length; i++) {
             const values = this.parseCSVLine(lines[i]);
-            if (values.length === headers.length) {
+            console.log(`Row ${i} values:`, values);
+            
+            if (values.length >= headers.length) {
                 const row = {};
                 headers.forEach((header, index) => {
-                    row[header] = values[index];
+                    row[header] = values[index] ? values[index].trim().replace(/"/g, '') : '';
                 });
+                console.log(`Row ${i} parsed:`, row);
                 data.push(row);
             }
         }
 
+        console.log('Final parsed data:', data);
         return data;
     }
 
@@ -434,19 +439,38 @@ class CSVHandler {
                 }
 
                 const feedDate = row.Date || row.date;
-                console.log('Feed date:', feedDate);
+                console.log('Feed date from CSV:', feedDate);
+                
+                // Validate and format date
+                let formattedDate = feedDate;
+                if (feedDate && feedDate !== '') {
+                    // Try to parse different date formats
+                    const parsedDate = new Date(feedDate);
+                    if (!isNaN(parsedDate.getTime())) {
+                        formattedDate = parsedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+                    }
+                }
+                console.log('Formatted date:', formattedDate);
                 
                 // Check if a feed log already exists for this cycle and date
                 const existingLogs = await this.db.getFeedLogs(cycleId);
-                const existingLog = existingLogs.find(log => log.date === feedDate);
+                const existingLog = existingLogs.find(log => log.date === formattedDate);
                 console.log('Existing log found:', !!existingLog);
+                
+                const feedAmount = parseFloat(row.Feed_Consumed_Kg || row.feedConsumed || row.amount) || 0;
+                const feedCost = parseFloat(row.Feed_Cost || row.feedCost || row.cost) || 0;
+                const feedNotes = row.Notes || row.notes || '';
+                
+                console.log('Feed amount parsed:', feedAmount);
+                console.log('Feed cost parsed:', feedCost);
+                console.log('Feed notes:', feedNotes);
                 
                 const feedLogData = {
                     cycleId: cycleId,
-                    date: feedDate,
-                    amount: parseFloat(row.Feed_Consumed_Kg || row.feedConsumed || row.amount) || 0,
-                    cost: parseFloat(row.Feed_Cost || row.feedCost || row.cost) || 0,
-                    notes: row.Notes || row.notes || '',
+                    date: formattedDate,
+                    amount: feedAmount,
+                    cost: feedCost,
+                    notes: feedNotes,
                     updatedAt: new Date().toISOString()
                 };
                 
