@@ -58,7 +58,7 @@ class CageManager {
                         <div class="mt-3">
                             <small class="text-muted">
                                 <i class="fas fa-calendar me-1"></i>
-                                Created: ${new Date(cage.createdAt).toLocaleDateString()}
+                                Created: ${this.formatDate(cage.createdAt)}
                             </small>
                         </div>
                     </div>
@@ -222,6 +222,14 @@ class CageManager {
             console.error('Error updating cage status:', error);
             this.showToast('Error updating cage status. Please try again.', 'error');
         }
+    }
+
+    formatDate(date) {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
     }
 
     showToast(message, type = 'info') {

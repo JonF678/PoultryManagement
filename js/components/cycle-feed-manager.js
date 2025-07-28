@@ -265,9 +265,15 @@ class CycleFeedManager {
     }
 
     renderFeedLogRow(log) {
+        const date = new Date(log.date);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const formattedDate = `${day}/${month}/${year}`;
+        
         return `
             <tr>
-                <td>${new Date(log.date).toLocaleDateString()}</td>
+                <td>${formattedDate}</td>
                 <td>${log.amount} kg</td>
                 <td>${log.cost ? '₵' + log.cost.toFixed(2) : '-'}</td>
                 <td>${log.notes || '-'}</td>
@@ -281,10 +287,16 @@ class CycleFeedManager {
     }
 
     renderBirdsLogRow(log) {
+        const date = new Date(log.date);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const formattedDate = `${day}/${month}/${year}`;
+        
         const totalValue = (log.birdsSold || 0) * (log.birdPrice || 0);
         return `
             <tr>
-                <td>${new Date(log.date).toLocaleDateString()}</td>
+                <td>${formattedDate}</td>
                 <td>${log.birdsSold || 0}</td>
                 <td>${log.birdPrice ? '₵' + log.birdPrice.toFixed(2) : '-'}</td>
                 <td>${totalValue ? '₵' + totalValue.toFixed(2) : '-'}</td>

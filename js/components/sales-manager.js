@@ -414,6 +414,12 @@ class SalesManager {
     }
 
     renderSalesRow(sale) {
+        const date = new Date(sale.date);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const formattedDate = `${day}/${month}/${year}`;
+        
         const saleType = sale.saleType || 'eggs';
         const typeIcon = saleType === 'birds' ? '<i class="fas fa-dove text-warning"></i>' : '<i class="fas fa-egg text-primary"></i>';
         const quantity = saleType === 'birds' ? `${sale.birdsQuantity} birds` : `${sale.crates || sale.cratesQuantity} crates`;
@@ -421,7 +427,7 @@ class SalesManager {
         
         return `
             <tr>
-                <td>${new Date(sale.date).toLocaleDateString()}</td>
+                <td>${formattedDate}</td>
                 <td>${typeIcon} ${saleType.charAt(0).toUpperCase() + saleType.slice(1)}</td>
                 <td><strong>${sale.customer || sale.customerName}</strong></td>
                 <td>${quantity}</td>

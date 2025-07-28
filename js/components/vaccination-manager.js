@@ -261,7 +261,7 @@ class VaccinationManager {
     renderVaccinationRow(vaccination) {
         return `
             <tr>
-                <td>${new Date(vaccination.date).toLocaleDateString()}</td>
+                <td>${this.formatDate(vaccination.date)}</td>
                 <td><span class="badge bg-info">${vaccination.flockAge}</span></td>
                 <td><strong>${vaccination.vaccineName}</strong></td>
                 <td>
@@ -389,7 +389,7 @@ class VaccinationManager {
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-6"><strong>Date:</strong></div>
-                                <div class="col-6">${new Date(vaccination.date).toLocaleDateString()}</div>
+                                <div class="col-6">${this.formatDate(vaccination.date)}</div>
                             </div>
                             <div class="row">
                                 <div class="col-6"><strong>Flock Age:</strong></div>
@@ -696,6 +696,14 @@ class VaccinationManager {
         
         const bsToast = new bootstrap.Toast(toast);
         bsToast.show();
+    }
+
+    formatDate(date) {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
     }
 }
 

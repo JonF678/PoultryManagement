@@ -113,7 +113,7 @@ class CycleOverview {
                 <td>
                     <span class="badge ${this.getStatusBadgeClass(cycle.status)}">${cycle.status}</span>
                 </td>
-                <td>${new Date(cycle.startDate).toLocaleDateString()}</td>
+                <td>${this.formatDate(cycle.startDate)}</td>
                 <td>${duration}</td>
                 <td>
                     <span class="badge bg-secondary" id="cages-count-${cycle.id}">-</span>
@@ -376,6 +376,14 @@ class CycleOverview {
 
     viewCycleAnalytics(cycleId) {
         router.navigate('analytics', { cycleId });
+    }
+
+    formatDate(date) {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
     }
 
     showToast(message, type = 'info') {

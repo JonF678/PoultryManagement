@@ -333,9 +333,15 @@ class CageDetail {
             this.cage.currentBirds
         );
 
+        const date = new Date(log.date);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const formattedDate = `${day}/${month}/${year}`;
+        
         return `
             <tr>
-                <td>${new Date(log.date).toLocaleDateString()}</td>
+                <td>${formattedDate}</td>
                 <td><strong>${eggs}</strong></td>
                 <td><span class="badge bg-${layingPercentage > 80 ? 'success' : layingPercentage > 60 ? 'warning' : 'danger'}">${layingPercentage.toFixed(1)}%</span></td>
                 <td>${log.mortality || 0}</td>
@@ -345,9 +351,15 @@ class CageDetail {
     }
 
     renderFeedLogRow(log) {
+        const date = new Date(log.date);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const formattedDate = `${day}/${month}/${year}`;
+        
         return `
             <tr>
-                <td>${new Date(log.date).toLocaleDateString()}</td>
+                <td>${formattedDate}</td>
                 <td>${log.feedConsumed || log.amount || 0}</td>
                 <td>${log.cost ? '₵' + log.cost.toFixed(2) : '-'}</td>
             </tr>
@@ -383,7 +395,13 @@ class CageDetail {
         const recentLogs = this.productionLogs.slice(-30); // Last 30 entries
         
         const chartData = {
-            labels: recentLogs.map(log => new Date(log.date).toLocaleDateString()),
+            labels: recentLogs.map(log => {
+                const date = new Date(log.date);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            }),
             datasets: [
                 {
                     label: 'Eggs Collected',

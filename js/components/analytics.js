@@ -765,7 +765,12 @@ class Analytics {
         const profitData = labels.map(month => monthlyData[month].revenue - monthlyData[month].expenses);
 
         const chartData = {
-            labels: labels.map(label => new Date(label + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'short' })),
+            labels: labels.map(label => {
+                const date = new Date(label + '-01');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${month}/${year}`;
+            }),
             datasets: [
                 {
                     label: 'Revenue',
