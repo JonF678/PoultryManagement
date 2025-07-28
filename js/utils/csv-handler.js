@@ -63,6 +63,49 @@ class CSVHandler {
         return result;
     }
 
+    // Parse dd/mm/yyyy date format to ISO date string
+    parseDateFormat(dateString) {
+        if (!dateString || dateString.trim() === '') {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        console.log('Parsing date string:', dateString);
+        
+        // Check if it's already in yyyy-mm-dd format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+            return dateString;
+        }
+        
+        // Handle dd/mm/yyyy format
+        if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateString)) {
+            const [day, month, year] = dateString.split('/');
+            const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            console.log('Converted dd/mm/yyyy to ISO:', isoDate);
+            return isoDate;
+        }
+        
+        // Handle mm/dd/yyyy format (fallback)
+        if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateString)) {
+            const [month, day, year] = dateString.split('/');
+            const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            console.log('Converted mm/dd/yyyy to ISO:', isoDate);
+            return isoDate;
+        }
+        
+        // Try to parse as regular date and convert to ISO
+        try {
+            const parsed = new Date(dateString);
+            if (!isNaN(parsed.getTime())) {
+                return parsed.toISOString().split('T')[0];
+            }
+        } catch (e) {
+            console.warn('Failed to parse date:', dateString);
+        }
+        
+        // Fallback to current date
+        return new Date().toISOString().split('T')[0];
+    }
+
     // Convert array of objects to CSV
     arrayToCSV(data, headers) {
         if (!data || data.length === 0) return '';
@@ -229,7 +272,7 @@ class CSVHandler {
                 if (!cycleId) {
                     const newCycle = {
                         name: cycleName,
-                        startDate: row.Date || new Date().toISOString().split('T')[0],
+                        startDate: this.parseDateFormat(row.Date) || new Date().toISOString().split('T')[0],
                         endDate: null,
                         status: 'active',
                         notes: `Auto-created from CSV import`,
@@ -261,7 +304,7 @@ class CSVHandler {
                 const productionLog = {
                     cycleId: cycleId,
                     cageId: cageId,
-                    date: row.Date || row.date,
+                    date: this.parseDateFormat(row.Date || row.date),
                     flockAgeDays: parseInt(row.Flock_Age_Days || row.flockAgeDays) || 0,
                     openingBirds: parseInt(row.Opening_Birds || row.openingBirds) || 0,
                     mortality: parseInt(row.Mortality || row.mortality) || 0,
@@ -305,7 +348,7 @@ class CSVHandler {
                 if (!cycleId) {
                     const newCycle = {
                         name: cycleName,
-                        startDate: row.Date || new Date().toISOString().split('T')[0],
+                        startDate: this.parseDateFormat(row.Date) || new Date().toISOString().split('T')[0],
                         endDate: null,
                         status: 'active',
                         notes: `Auto-created from CSV import`,
@@ -318,7 +361,7 @@ class CSVHandler {
 
                 const sale = {
                     cycleId: cycleId,
-                    date: row.Date || row.date,
+                    date: this.parseDateFormat(row.Date || row.date),
                     saleType: row.Sale_Type || row.saleType || 'egg',
                     customer: row.Customer || row.customer || '',
                     amount: parseFloat(row.Total_Amount || row.amount) || 0,
@@ -369,7 +412,7 @@ class CSVHandler {
                 if (!cycleId) {
                     const newCycle = {
                         name: cycleName,
-                        startDate: row.Date || new Date().toISOString().split('T')[0],
+                        startDate: this.parseDateFormat(row.Date) || new Date().toISOString().split('T')[0],
                         endDate: null,
                         status: 'active',
                         notes: `Auto-created from CSV import`,
@@ -382,7 +425,7 @@ class CSVHandler {
 
                 const expense = {
                     cycleId: cycleId,
-                    date: row.Date || row.date,
+                    date: this.parseDateFormat(row.Date || row.date),
                     category: row.Category || row.category || 'other',
                     description: row.Description || row.description || '',
                     amount: parseFloat(row.Amount || row.amount) || 0,
@@ -426,7 +469,7 @@ class CSVHandler {
                 if (!cycleId) {
                     const newCycle = {
                         name: cycleName,
-                        startDate: row.Date || new Date().toISOString().split('T')[0],
+                        startDate: this.parseDateFormat(row.Date) || new Date().toISOString().split('T')[0],
                         endDate: null,
                         status: 'active',
                         notes: `Auto-created from CSV import`,
@@ -441,15 +484,8 @@ class CSVHandler {
                 const feedDate = row.Date || row.date;
                 console.log('Feed date from CSV:', feedDate);
                 
-                // Validate and format date
-                let formattedDate = feedDate;
-                if (feedDate && feedDate !== '') {
-                    // Try to parse different date formats
-                    const parsedDate = new Date(feedDate);
-                    if (!isNaN(parsedDate.getTime())) {
-                        formattedDate = parsedDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-                    }
-                }
+                // Parse date using our dd/mm/yyyy parser
+                const formattedDate = this.parseDateFormat(feedDate);
                 console.log('Formatted date:', formattedDate);
                 
                 // Check if a feed log already exists for this cycle and date
