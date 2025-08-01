@@ -401,8 +401,45 @@ const settings = {
     },
 
     showToast(message, type = 'info') {
+        // Try to use the app's toast method first
         if (window.app && window.app.showToast) {
             window.app.showToast(message, type);
+            return;
+        }
+
+        // Fallback to Bootstrap toast implementation
+        const toast = document.getElementById('toast');
+        if (toast) {
+            const toastBody = toast.querySelector('.toast-body');
+            if (toastBody) {
+                toastBody.textContent = message;
+                
+                const icon = toast.querySelector('.fas');
+                if (icon) {
+                    icon.className = type === 'success' ? 'fas fa-check-circle text-success me-2' : 
+                                    type === 'error' ? 'fas fa-exclamation-circle text-danger me-2' : 
+                                    type === 'warning' ? 'fas fa-exclamation-triangle text-warning me-2' :
+                                    'fas fa-info-circle text-primary me-2';
+                }
+                
+                // Show the toast using Bootstrap
+                if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+                    const bsToast = new bootstrap.Toast(toast);
+                    bsToast.show();
+                } else {
+                    // Fallback for when Bootstrap isn't available
+                    toast.style.display = 'block';
+                    setTimeout(() => {
+                        toast.style.display = 'none';
+                    }, 3000);
+                }
+                return;
+            }
+        }
+
+        // Ultimate fallback - just use alert for important messages
+        if (type === 'error' || type === 'success') {
+            alert(`${type.toUpperCase()}: ${message}`);
         } else {
             console.log(`${type.toUpperCase()}: ${message}`);
         }
