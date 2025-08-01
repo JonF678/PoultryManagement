@@ -1,0 +1,138 @@
+/* Authentication Styles */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+}
+
+.login-card {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-header {
+    margin-bottom: 30px;
+}
+
+.login-icon {
+    font-size: 3rem;
+    color: #2563eb;
+    margin-bottom: 20px;
+}
+
+.login-header h2 {
+    color: #1f2937;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.login-form {
+    text-align: left;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-right: none;
+    color: #6b7280;
+}
+
+.form-control {
+    border-left: none;
+    padding-left: 10px;
+}
+
+.form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+.input-group-text + .form-control {
+    border-left: 1px solid #ced4da;
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: #2563eb;
+    background-color: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    padding: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.login-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.alert-danger {
+    background-color: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+    border-radius: 8px;
+}
+
+/* Form check styles */
+.form-check-input:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.form-check-label {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 576px) {
+    .login-container {
+        padding: 10px;
+    }
+    
+    .login-card {
+        padding: 30px 20px;
+    }
+    
+    .login-icon {
+        font-size: 2.5rem;
+    }
+}
+
+/* Animation for login card */
+.login-card {
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

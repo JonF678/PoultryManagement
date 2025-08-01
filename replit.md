@@ -1,317 +1,48 @@
 # Poultry Management System
 
 ## Overview
-
-This is a comprehensive Progressive Web Application (PWA) for managing poultry farms. The system provides offline-capable functionality for tracking production cycles, managing cages, logging production data, and analyzing performance metrics. Built as a client-side application with local data storage, it's designed to work reliably even without internet connectivity.
+This Progressive Web Application (PWA) is designed for comprehensive poultry farm management. It offers offline-capable functionality for tracking production cycles, managing cages, logging vital production data, and analyzing performance metrics. The system is a client-side application utilizing local data storage, ensuring reliability even without internet connectivity. Its core capabilities include detailed tracking of egg and bird sales, expenses, and vaccination records, providing a holistic view of farm operations and profitability.
 
 ## User Preferences
-
 Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
 ### Frontend Architecture
-- **Single Page Application (SPA)**: Built with vanilla JavaScript using a custom routing system
-- **Progressive Web App (PWA)**: Includes service worker for offline functionality and app-like experience
-- **Responsive Design**: Bootstrap 5 for mobile-first responsive UI
-- **Component-Based**: Modular JavaScript components for different sections (cycles, cages, analytics)
+- **Single Page Application (SPA)**: Built with vanilla JavaScript and a custom routing system.
+- **Progressive Web App (PWA)**: Includes a service worker for offline functionality and an app-like experience, enabling installation as a native app.
+- **Responsive Design**: Utilizes Bootstrap 5 for a mobile-first, responsive UI.
+- **Component-Based**: Modular JavaScript components organize different sections like cycles, cages, and analytics.
 
 ### Data Storage
-- **IndexedDB**: Browser-based NoSQL database for offline data persistence
-- **Local Storage**: All data stored client-side for complete offline functionality
-- **No Backend**: Pure client-side application with no server dependencies
+- **IndexedDB**: Browser-based NoSQL database for robust offline data persistence.
+- **Local Storage**: All data is stored client-side for complete offline functionality, with no server dependencies.
 
-### UI Framework
-- **Bootstrap 5**: For responsive grid system and UI components
-- **Font Awesome**: For icons and visual elements
-- **Chart.js**: For data visualization and analytics charts
-- **Custom CSS**: Additional styling using CSS custom properties
+### UI/UX Decisions
+- **Bootstrap 5**: Core framework for responsive grid systems and UI components.
+- **Font Awesome**: Used for consistent iconography.
+- **Chart.js**: Integrated for dynamic data visualization and analytics charts.
+- **Custom CSS**: Augments styling using CSS custom properties for a tailored look.
+- **Date Format**: Universal `dd/mm/yyyy` format implemented across the entire application for consistent date display.
+- **Currency Support**: User-selectable currency (Ghanaian Cedi, US Dollar, British Pound) with Ghanaian Cedi as default, applied consistently across all financial records.
 
-## Key Components
-
-### Database Schema (IndexedDB)
-- **Cycles**: Production cycles with start/end dates, status, and metadata
-- **Cages**: Individual cage management with cycle association
-- **Production Logs**: Daily egg collection and production tracking
-- **Feed Logs**: Feed consumption and cost tracking
-
-### Component Architecture
-- **CycleOverview**: Main dashboard for managing production cycles
-- **CageDetail**: Individual cage management and production logging
-- **Analytics**: Performance metrics and data visualization
-- **CageManager**: Cage creation and management interface
-
-### Utilities
-- **Calculations**: Feed conversion ratios, laying percentages, efficiency metrics
-- **Charts**: Chart.js wrapper for consistent data visualization
-- **Router**: Client-side routing for navigation
-
-## Data Flow
-
-1. **User Input**: Forms capture production data (eggs, feed, mortality)
-2. **Local Storage**: Data immediately saved to IndexedDB
-3. **Real-time Updates**: UI updates reflect changes instantly
-4. **Analytics Processing**: Calculations performed on-demand for metrics
-5. **Chart Rendering**: Visual data representation using Chart.js
+### Technical Implementations
+- **Core Components**: Includes CycleOverview (main dashboard), CageDetail (individual cage management), Analytics (performance metrics), and CageManager (creation/management).
+- **Calculations**: Provides utilities for feed conversion ratios, laying percentages, efficiency metrics, and comprehensive financial calculations (e.g., ROI).
+- **Data Flow**: User input is immediately saved to IndexedDB, triggering real-time UI updates, on-demand analytics processing, and Chart.js rendering.
+- **Daily Entry System**: Redesigned for cage-level entry of mortality and egg production, with cycle-level tracking for feed consumption and birds sold. Auto-calculates flock age and opening birds.
+- **Sales and Expense Management**: Dual-tab system for tracking egg and bird sales, and categorized expense recording. Features comprehensive filtering by category and sales type.
+- **Vaccination Management**: Comprehensive tracking with user-configurable schedules and automatic flock age calculation.
+- **CSV Import/Export**: Bidirectional data transfer for production logs, sales, expenses, and feed logs, optimized for Excel compatibility with template downloads and smart import that auto-creates missing cycles/cages.
+- **Analytics Enhancements**: Time period filtering (daily, weekly, monthly, yearly), daily metric granularity, and secondary Y-axes for percentage-based metrics in charts. Handles various data field formats for compatibility.
 
 ## External Dependencies
 
 ### CDN Resources
-- **Bootstrap 5.3.0**: CSS framework and JavaScript components
-- **Font Awesome 6.4.0**: Icon library
-- **Chart.js 3.9.1**: Data visualization library
+- **Bootstrap 5.3.0**: CSS framework and JavaScript components for responsive design.
+- **Font Awesome 6.4.0**: Icon library for visual elements.
+- **Chart.js 3.9.1**: JavaScript library for data visualization and analytics charts.
 
 ### PWA Features
-- **Service Worker**: Caches resources for offline functionality
-- **Web App Manifest**: Enables installation as native app
-- **Responsive Icons**: App icons for various device sizes
-
-## Deployment Strategy
-
-### Static Hosting
-- **Client-Side Only**: Can be deployed to any static hosting service
-- **No Server Requirements**: Complete frontend application
-- **CDN Dependencies**: Relies on external CDNs for libraries
-
-### Offline Capability
-- **Service Worker Caching**: Caches all application resources
-- **Local Data Storage**: All user data stored in browser
-- **Network-Independent**: Full functionality without internet connection
-
-### Installation
-- **PWA Installation**: Users can install as native app
-- **Cross-Platform**: Works on desktop and mobile browsers
-- **No App Store**: Direct installation from browser
-
-## Technical Considerations
-
-### Performance
-- **Lazy Loading**: Components loaded on-demand
-- **Efficient Queries**: IndexedDB queries optimized for performance
-- **Minimal Dependencies**: Lightweight external library usage
-
-### Data Management
-- **No Synchronization**: Pure offline approach
-- **Export Capabilities**: Data can be exported for backup
-- **Browser Storage Limits**: Subject to browser storage quotas
-
-### Browser Compatibility
-- **Modern Browsers**: Requires support for IndexedDB, Service Workers
-- **ES6+ Features**: Uses modern JavaScript features
-- **Progressive Enhancement**: Graceful degradation for older browsers
-
-## Recent Changes
-
-### July 10, 2025 - Enhanced Daily Entry System
-- **Updated Daily Entry Form**: Modified cage detail component to capture specific data points:
-  - Date, flock age (days), opening birds, cage, mortality, birds sold
-  - Eggs produced in trays (1 tray = 30 eggs), current feed in kg
-- **Automated Calculations**: System now calculates:
-  - Age in days & weeks, closing balance of birds
-  - Cumulative mortality till date and percentage
-  - Production percentage (current), cumulative production (trays)
-  - Hen house production (eggs per bird from 19th week laying period)
-  - Feed metrics: current/cumulative feed per bird (kg), current/cumulative feed per egg (grams)
-
-### July 10, 2025 - Added Sales, Expense, and Vaccination Tracking
-- **Sales Management**: Track egg sales per crate with customer details, payment methods
-- **Expense Management**: Record expenses per cycle by category (feed, medication, labor, etc.)
-- **Vaccination Records**: Comprehensive vaccination tracking with recommended schedules
-- **Database Schema**: Updated to version 2 with new object stores for sales, expenses, vaccinations
-- **Navigation**: Enhanced analytics dashboard with quick access to all tracking features
-
-## Recent Changes: Latest modifications with dates
-
-### July 21, 2025 - Chart Fixes and Vaccination Schedule Customization
-- **Fixed Analytics Primary Metric Dropdown**: Resolved issue where selecting different metrics (Profit Analysis, etc.) didn't update charts
-  - **Dynamic Chart Switching**: Implemented proper metric-based chart rendering with dynamic titles
-  - **New Chart Types**: Added Mortality Trends and Profit Analysis charts with proper data visualization
-  - **Enhanced User Experience**: Charts now update instantly when metric selection changes
-- **Fixed Cage Management Charts**: Resolved empty Production Trend and Performance Overview sections
-  - **Chart Loading**: Added missing chart rendering calls that were preventing display
-  - **Enhanced Charts**: Improved Performance Overview with gauge-style display showing laying rate percentage
-  - **Empty State Handling**: Added proper fallback messages when no data is available
-- **Vaccination Schedule Customization**: Transformed hard-coded vaccination schedule into user-configurable system
-  - **Custom Schedule Manager**: Built comprehensive interface for creating and editing vaccination schedules
-  - **User Input Interface**: Added modal with form fields for day, weeks, vaccine name, and administration method
-  - **Schedule Persistence**: Custom schedules saved per cycle using localStorage with automatic loading
-  - **Standard Schedule Option**: Users can switch between custom and standard schedules with confirmation
-  - **Dynamic Schedule Display**: Schedule automatically shows completion status based on recorded vaccinations
-- **Automatic Flock Age Calculation**: Fixed vaccination management to auto-calculate flock age from cycle start date
-  - **Read-Only Field**: Made flock age field non-editable with visual indicators showing auto-calculation
-  - **Real-Time Updates**: Age updates instantly when vaccination date changes
-  - **Improved UX**: Added helpful text and styling to indicate automatic calculation
-
-### July 22, 2025 - Critical Laying Efficiency Fix and Complete CSV Import Compatibility 
-- **Laying Efficiency Chart Fix**: Fixed efficiency chart failing to display after CSV import by adding missing `eggsCollected` fallback
-  - **Enhanced Analytics Compatibility**: All analytics components now support multiple egg data field formats (`eggsProduced`, `eggsCollected`, `eggsTrays`)
-  - **Feed Data Compatibility**: Fixed feed efficiency calculations to handle both `feedConsumed` and legacy `amount` field names
-  - **Complete Chart Coverage**: Production trends, efficiency charts, KPIs, insights, and performance tables now work with all CSV import formats
-  - **Empty State Handling**: Added proper empty state messages for efficiency chart when no production data available
-  - **Data Field Consistency**: Updated all production log processing across analytics, calculations, and cage detail components
-
-### July 22, 2025 - Analytics Dashboard Cleanup and CSV Auto-Creation Enhancement
-- **Analytics Dashboard Streamlining**: Removed redundant feed consumption and efficiency chart sections from dashboard
-  - **Simplified Layout**: Users can now access all metrics (production, efficiency, feed, mortality, profit) through the dropdown selector
-  - **Dynamic Chart Loading**: Single main chart area shows different metrics based on user selection
-  - **Cleaner Interface**: Removed duplicate chart sections while maintaining full functionality through metric cycling
-- **CSV Import Auto-Creation**: Enhanced CSV import to automatically create missing cycles and cages during import
-  - **Smart Import Processing**: System creates new cycles and cages when referenced names don't exist in database
-  - **Default Settings**: New cycles get proper start dates and active status, new cages get default capacity and breed settings  
-  - **Enhanced Feedback**: Import results now show count of newly created cycles and cages
-  - **User-Friendly**: No more "invalid reference" errors - any cycle or cage name in CSV will work
-
-### July 25, 2025 - Time Period Filter and Enhanced Analytics Implementation
-- **Time Period Filter**: Added comprehensive time period filtering for analytics charts
-  - **Filter Options**: Users can now view metrics by days, weeks, months, and years
-  - **Dynamic Grouping**: Data automatically groups by selected time period using `Calculations.groupDataByPeriod()`
-  - **Chart Labels**: Labels adapt to time period (daily: dd/mm/yyyy, monthly: mm/yyyy, yearly: yyyy)
-  - **Dynamic Titles**: Chart titles update to reflect selected time period (e.g., "Daily Production", "Weekly Production")
-  - **User Interface**: Added time period dropdown in analytics filter section
-- **Daily Analytics Charts**: Changed from weekly to daily metrics for better granular tracking
-  - **Production Chart**: Now shows daily egg production and laying rate percentages
-  - **Mortality Chart**: Now shows daily mortality counts and mortality rate percentages
-  - **Feed Chart**: Now shows daily feed consumption instead of weekly aggregates
-  - **Efficiency Chart**: Maintained daily efficiency with 7-day moving average
-- **UK Date Format**: Implemented dd/mm/yyyy date format throughout the entire application
-  - **Date Utility Function**: Enhanced `Calculations.formatDate()` for consistent formatting with period support
-  - **Chart Labels**: All chart labels now use dd/mm/yyyy format
-  - **Component Updates**: Updated all components using `.toLocaleDateString()` to use new format
-  - **User-Friendly Display**: Consistent date display across analytics, sales, expenses, and vaccination records
-- **Enhanced Analytics Charts**: Added secondary y-axes for percentage-based metrics in production and mortality charts
-  - **Production Chart**: Primary axis shows egg production counts, secondary axis shows laying rate percentages
-  - **Mortality Chart**: Primary axis shows mortality counts, secondary axis shows mortality rate percentages
-  - **Improved Visualization**: Makes it much easier to compare absolute values with percentage rates simultaneously
-  - **Consistent Feed Data**: Fixed feed history consistency between cage detail views and cycle feed management
-  - **Cycle-Level Feed Tracking**: All components now properly display cycle-level feed data instead of cage-level data
-
-### July 27, 2025 - Complete Feed Data Import/Export and CSV Parsing Fix
-- **Feed CSV Export Issue Resolved**: Fixed critical field name mismatch preventing feed data from appearing in CSV exports
-  - **Export Function Fix**: Changed CSV export to use correct field names `amount` and `cost` instead of `feedConsumed` and `feedCost`
-  - **Import Function Fix**: Updated CSV import to handle both old and new field names for backward compatibility
-  - **Smart Import Enhancement**: Modified import function to update existing feed logs by date instead of creating duplicates
-  - **Duplicate Prevention**: Import now checks for existing feed logs on same date and cycle, updating them instead of duplicating
-  - **Complete Round-Trip**: Feed data can now be exported, modified in Excel, and imported back successfully
-  - **Analytics Compatibility**: Analytics component already had fallback logic to handle both field name formats
-  - **CSV Parsing Enhancement**: Improved CSV parsing to handle different date formats and properly extract numeric values
-  - **Date Format Validation**: Added proper date parsing and validation during import to prevent "Invalid Date" issues
-  - **Duplicate Prevention**: Enhanced import logic to update existing records by date instead of creating duplicates
-  - **Debug Logging**: Added comprehensive logging to track import process and identify parsing issues
-
-### July 28, 2025 - Complete dd/mm/yyyy Date Format Implementation
-- **Universal Date Format**: Standardized all date displays across the entire application to dd/mm/yyyy format
-  - **Main App Formatter**: Updated main `formatDate()` function in app.js to use dd/mm/yyyy consistently
-  - **Feed Management**: Fixed date formatting in cycle feed manager for feed logs and bird sales history tables
-  - **Sales Manager**: Updated sales history table to display dates in dd/mm/yyyy format
-  - **Production Cycles**: Modified cycle overview to show start dates in dd/mm/yyyy format
-  - **Expense Manager**: Updated expense history table with proper dd/mm/yyyy date formatting
-  - **Vaccination Manager**: Fixed vaccination records and detail modal to use dd/mm/yyyy format
-  - **Cage Management**: Updated cage detail production logs, feed logs, and creation dates to dd/mm/yyyy
-  - **Chart Labels**: Fixed all chart date labels across analytics and cage detail components to use dd/mm/yyyy
-- **Component Date Methods**: Added formatDate() methods to all components requiring consistent date formatting
-- **Comprehensive Coverage**: All date displays now consistently use dd/mm/yyyy format as requested by user
-
-### July 22, 2025 - Critical Feed Import Bug Fix and Migration Completion
-- **Critical Feed Import Bug Fix**: Resolved major issue preventing feed consumption data from importing and displaying correctly
-  - **Missing Import Function**: Added missing `importFeedLogs` function to CSV handler
-  - **Database Methods Crisis**: Added essential missing database methods (`addFeedLog`, `getFeedLogs`, `getProductionLogs`, `addSale`, `getSales`, `addExpense`, `getExpenses`, `addProductionLog`, `getAllCycles`, `getAllCages`)
-  - **Property Name Fix**: Corrected analytics component to use `feedConsumed` instead of `amount` for feed data display
-  - **Feed Template Addition**: Added missing feed log CSV template with download functionality in data manager
-  - **Chart Data Fix**: Fixed efficiency chart to properly match feed logs with production logs by cycleId instead of cageId
-  - **Complete Data Flow**: Feed logs can now be imported, exported, and displayed correctly in analytics and charts
-  - **Export Error Resolution**: Fixed "getProductionLogs is not a function" error preventing data exports
-  - **Smart Import Enhancement**: CSV imports now automatically create missing cycles and cages instead of requiring exact name matches
-  - **Auto-Creation Feature**: Import system creates new cycles with proper start dates and cages with default settings when not found
-  - **Enhanced Import Feedback**: Results display shows count of newly created cycles and cages during import process
-- **Migration Verification**: All migration checklist items completed successfully
-  - **Python 3.11 Installation**: Confirmed Python 3.11 properly installed and running
-  - **Workflow Functionality**: HTTP server running correctly on port 5000
-  - **Security Practices**: Maintained proper client/server separation and security standards
-
-### July 21, 2025 - Successful Migration and CSV Import/Export Implementation
-- **Complete Migration**: Successfully migrated Poultry Management PWA from Replit Agent to standard Replit environment
-- **Python 3.11 Installation**: Installed Python 3.11 for HTTP server functionality
-- **Security & Compatibility**: Ensured proper client/server separation and security practices
-- **Workflow Configuration**: Set up proper workflow with Python HTTP server on port 5000
-- **Verification Complete**: All components loading correctly, database and analytics functioning properly
-- **PWA Functionality**: Service worker and offline capabilities working as expected
-- **CSV Import/Export System**: Implemented comprehensive CSV import/export functionality for Excel compatibility
-  - **Bidirectional Data Transfer**: Export all data types (production logs, sales, expenses, feed logs) to CSV
-  - **Excel-Compatible Format**: CSV files properly formatted for Excel editing and re-import
-  - **Template Downloads**: Downloadable CSV templates with proper headers and sample data
-  - **Data Validation**: Import validation with error reporting and success summaries
-  - **User Interface**: Dedicated Import/Export page with clear instructions and cycle filtering
-- **Critical Bug Fix**: Fixed "Clear All Data" functionality that was leaving sales and expenses data
-  - **Complete Data Clearing**: Now properly clears all 7 object stores (cycles, cages, productionLogs, feedLogs, sales, expenses, vaccinations)
-  - **Analytics Cache Clearing**: Added cache clearing for analytics data to prevent stale data display
-  - **Force Refresh**: Analytics automatically refreshes after data clearing to show empty state
-
-### July 15, 2025 - Replit Migration and Production Entry System Redesign
-- **Migration to Replit**: Successfully migrated project from Replit Agent to standard Replit environment
-- **Python 3.11 Installation**: Installed Python 3.11 for HTTP server functionality
-- **Daily Production Entry Redesign**: Redesigned daily entry system based on user requirements:
-  - **Cage-Level Entry**: Only mortality and eggs produced are entered per cage
-  - **Cycle-Level Entry**: Feed consumption and birds sold tracked at cycle level for entire flock
-  - **Auto-Calculations**: Flock age automatically calculated from cycle start date
-  - **Opening Birds**: Auto-calculated from previous day's closing stock
-- **New Cycle Feed Manager**: Created dedicated component for managing feed and birds sold at cycle level
-- **Enhanced Navigation**: Added feed management button to cycle overview and cage detail pages
-- **Database Schema**: Updated to support cycle-level feed and birds sold tracking
-- **User Interface**: Clear separation between cage-level and cycle-level data entry with informational alerts
-- **Birds Sold Income Tracking**: Enhanced sales manager with dual-tab system for tracking both egg sales and birds sold as income
-  - **Egg Sales Tab**: Traditional egg sales tracking with crates, price per crate, and total amount
-  - **Bird Sales Tab**: New bird sales tracking with bird quantity, price per bird, weight, and total amount
-  - **Comprehensive Dashboard**: Updated sales summary to show separate totals for egg sales and bird sales
-  - **Unified Sales History**: Combined sales history table showing both egg and bird sales with type indicators
-  - **Auto-Calculations**: Real-time calculation of total amounts for both sale types
-- **Currency Settings Enhancement**: Added comprehensive currency support for all financial records
-  - **User-Selectable Currency**: Settings now allow users to choose between Ghanaian Cedi (₵), US Dollar ($), and British Pound (£)
-  - **Default Currency**: Ghanaian Cedi set as default currency for all financial transactions
-  - **Consistent Display**: All financial amounts across sales, expenses, and analytics now use the selected currency
-  - **Form Labels**: Dynamic currency symbols in all form labels for sales and expense entry
-  - **Automatic Updates**: Currency preference automatically applies to all existing and new financial records
-- **Category Filtering System**: Enhanced sales and expense managers with comprehensive filtering functionality
-  - **Expense Category Filter**: Filter expenses by category (feed, labor, medication, vaccination, utilities, equipment, transport, maintenance, other)
-  - **Sales Type Filter**: Filter sales by type (all sales, egg sales only, bird sales only)
-  - **Real-time Statistics**: Filter results show filtered record count and total amounts
-  - **Clear Filters**: One-click filter clearing to return to all records view
-  - **Interactive UI**: Filter dropdowns with live updates and visual feedback
-
-### July 11, 2025 - Comprehensive Documentation and CSV Export Enhancement
-- **Complete README**: Created comprehensive README.md with detailed explanations of every app feature
-- **All Calculations Explained**: Documented every mathematical formula used in the app with examples
-- **Performance Metrics Guide**: Added benchmarks and interpretation guidelines for all metrics
-- **User-Friendly Language**: Explained technical concepts in simple, everyday terms
-- **Troubleshooting Section**: Added common issues and solutions for users
-- **Best Practices**: Included daily, weekly, and monthly farm management routines
-- **Financial Analysis**: Comprehensive guide to understanding farm profitability and decision-making
-- **CSV Export System**: Replaced JSON exports with CSV format for better spreadsheet compatibility
-- **Multiple Export Options**: Added individual exports for production data, sales data, and expense data
-- **Excel-Ready Format**: All exports optimized for analysis in Excel, Google Sheets, and other spreadsheet applications
-
-### July 11, 2025 - Replit Migration and Ghanaian Localization
-- **Currency Localization**: Changed all currency displays from USD to Ghanaian Cedis (₵)
-- **Egg Entry System**: Modified data entry from trays to individual eggs for more accurate tracking
-- **Cycle-Based Analytics**: Enhanced analytics to provide cycle-level metrics instead of cage-level
-- **Profit Analysis**: Added comprehensive profit tracking with ROI calculations
-- **Cycle Filtering**: Implemented cycle selection in analytics dashboard
-- **Sample Data**: Generated comprehensive sample data with 2 active cycles, 8 cages, 90 days of production/feed logs, sales, expenses, and vaccination records
-- **Cycle Metrics**: Added cycle-based calculations for production efficiency, feed conversion, and profitability
-
-### July 10, 2025 - Enhanced Daily Entry System
-- **Updated Daily Entry Form**: Modified cage detail component to capture specific data points:
-  - Date, flock age (days), opening birds, cage, mortality, birds sold
-  - Eggs produced in trays (1 tray = 30 eggs), current feed in kg
-- **Automated Calculations**: System now calculates:
-  - Age in days & weeks, closing balance of birds
-  - Cumulative mortality till date and percentage
-  - Production percentage (current), cumulative production (trays)
-  - Hen house production (eggs per bird from 19th week laying period)
-  - Feed metrics: current/cumulative feed per bird (kg), current/cumulative feed per egg (grams)
-
-### July 10, 2025 - Added Sales, Expense, and Vaccination Tracking
-- **Sales Management**: Track egg sales per crate with customer details, payment methods
-- **Expense Management**: Record expenses per cycle by category (feed, medication, labor, etc.)
-- **Vaccination Records**: Comprehensive vaccination tracking with recommended schedules
-- **Database Schema**: Updated to version 2 with new object stores for sales, expenses, vaccinations
-- **Navigation**: Enhanced analytics dashboard with quick access to all tracking features
+- **Service Worker**: Manages caching of application resources for offline functionality.
+- **Web App Manifest**: Enables the application to be installed as a native app on devices.

@@ -9,6 +9,13 @@ class PoultryApp {
         if (this.initialized) return;
 
         try {
+            // Check authentication first
+            if (!auth.checkSession()) {
+                await auth.showLoginScreen();
+                // Restore the original page structure after login
+                this.restoreAppStructure();
+            }
+
             // Show loading screen
             this.showLoadingScreen();
 
@@ -20,6 +27,9 @@ class PoultryApp {
 
             // Initialize components
             this.initializeComponents();
+
+            // Add logout button to navbar
+            auth.addLogoutButton();
 
             // Hide loading screen
             this.hideLoadingScreen();
@@ -114,6 +124,103 @@ class PoultryApp {
         if (!savedSettings) {
             localStorage.setItem('poultrySettings', JSON.stringify(defaultSettings));
         }
+    }
+
+    restoreAppStructure() {
+        // Restore the original HTML structure after login
+        document.body.innerHTML = `
+            <!-- Navigation -->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+                <div class="container">
+                    <a class="navbar-brand" href="#">
+                        <i class="fas fa-egg me-2"></i>Poultry Manager
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" data-route="cycles">
+                                    <i class="fas fa-layer-group me-1"></i>Cycles
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" data-route="analytics">
+                                    <i class="fas fa-chart-line me-1"></i>Analytics
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" data-route="data-manager">
+                                    <i class="fas fa-exchange-alt me-1"></i>Import/Export
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" data-route="settings">
+                                    <i class="fas fa-cog me-1"></i>Settings
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="container mt-4">
+                    <!-- Loading Spinner -->
+                    <div id="loading" class="text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+
+                    <!-- App Content -->
+                    <div id="app-content"></div>
+                </div>
+            </main>
+
+            <!-- Bottom Navigation for Mobile -->
+            <nav class="navbar navbar-dark bg-primary fixed-bottom d-sm-none">
+                <div class="container-fluid">
+                    <div class="row w-100 text-center">
+                        <div class="col-4">
+                            <a class="nav-link text-white" href="#" data-route="cycles">
+                                <i class="fas fa-layer-group"></i>
+                                <small class="d-block">Cycles</small>
+                            </a>
+                        </div>
+                        <div class="col-4">
+                            <a class="nav-link text-white" href="#" data-route="analytics">
+                                <i class="fas fa-chart-line"></i>
+                                <small class="d-block">Analytics</small>
+                            </a>
+                        </div>
+                        <div class="col-4">
+                            <a class="nav-link text-white" href="#" data-route="settings">
+                                <i class="fas fa-cog"></i>
+                                <small class="d-block">Settings</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Modals -->
+            <div id="modal-container"></div>
+
+            <!-- Toast Container -->
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <div id="toast" class="toast" role="alert">
+                    <div class="toast-header">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        <strong class="me-auto">Notification</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body"></div>
+                </div>
+            </div>
+        `;
     }
 
     setupPeriodicBackup() {
