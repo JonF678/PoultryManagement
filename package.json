@@ -11,6 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "@types/memoizee": "^0.4.12",
+    "concurrently": "^9.2.0",
+    "electron": "^37.2.5",
+    "electron-builder": "^26.0.12",
     "memoizee": "^0.4.17",
     "openid-client": "^6.6.2"
   }

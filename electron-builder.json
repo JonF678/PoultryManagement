@@ -1,0 +1,62 @@
+{
+  "appId": "com.poultrymanager.app",
+  "productName": "Poultry Manager",
+  "directories": {
+    "output": "dist",
+    "buildResources": "build"
+  },
+  "files": [
+    "electron/**/*",
+    "index.html",
+    "css/**/*",
+    "js/**/*",
+    "icons/**/*",
+    "manifest.json",
+    "sw.js"
+  ],
+  "extraResources": [
+    {
+      "from": "icons/",
+      "to": "icons/"
+    }
+  ],
+  "mac": {
+    "category": "public.app-category.business",
+    "icon": "icons/icon-512.png",
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      }
+    ]
+  },
+  "win": {
+    "icon": "icons/icon-512.png",
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64", "ia32"]
+      }
+    ]
+  },
+  "linux": {
+    "icon": "icons/icon-512.png",
+    "category": "Office",
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": ["x64"]
+      },
+      {
+        "target": "deb",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  }
+}
