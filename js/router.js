@@ -237,7 +237,7 @@ class Router {
                     dataManager.loadCycleOptions();
                     break;
                 case 'settings':
-                    this.loadSettings();
+                    settings.init();
                     break;
                 default:
                     throw new Error(`Component '${componentName}' not found`);
@@ -251,92 +251,7 @@ class Router {
         }
     }
 
-    loadSettings() {
-        const content = `
-            <div class="settings fade-in">
-                <h2>Settings</h2>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Application Settings</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label for="defaultEggWeight" class="form-label">Default Egg Weight (g)</label>
-                                    <input type="number" class="form-control" id="defaultEggWeight" value="60">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="currency" class="form-label">Currency</label>
-                                    <select class="form-select" id="currency">
-                                        <option value="GHS">Ghanaian Cedi (₵)</option>
-                                        <option value="USD">US Dollar ($)</option>
-                                        <option value="GBP">British Pound (£)</option>
-                                    </select>
-                                    <small class="text-muted">This will be used for all financial records in the app (sales, expenses, etc.)</small>
-                                </div>
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="checkbox" id="enableNotifications" checked>
-                                    <label class="form-check-label" for="enableNotifications">
-                                        Enable Notifications
-                                    </label>
-                                </div>
-                                <button class="btn btn-primary" onclick="router.saveSettings()">Save Settings</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Data Management</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Export Data (CSV Format)</label>
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-outline-primary" onclick="router.exportAllData()">
-                                            <i class="fas fa-download me-2"></i>Export All Data (CSV)
-                                        </button>
-                                        <button class="btn btn-outline-secondary" onclick="router.exportCycles()">
-                                            <i class="fas fa-layer-group me-2"></i>Export Cycles Summary (CSV)
-                                        </button>
-                                        <button class="btn btn-outline-info" onclick="router.exportProductionData()">
-                                            <i class="fas fa-egg me-2"></i>Export Production Data (CSV)
-                                        </button>
-                                        <button class="btn btn-outline-success" onclick="router.exportSalesData()">
-                                            <i class="fas fa-money-bill me-2"></i>Export Sales Data (CSV)
-                                        </button>
-                                        <button class="btn btn-outline-warning" onclick="router.exportExpenseData()">
-                                            <i class="fas fa-receipt me-2"></i>Export Expense Data (CSV)
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Import Data</label>
-                                    <input type="file" class="form-control" id="importFile" accept=".json,.csv">
-                                    <button class="btn btn-outline-success mt-2" onclick="router.importData()">
-                                        <i class="fas fa-upload me-2"></i>Import Data (JSON only)
-                                    </button>
-                                    <small class="text-muted">Note: CSV import coming soon. For now, use JSON format for importing.</small>
-                                </div>
-                                <hr>
-                                <div class="mb-3">
-                                    <label class="form-label text-danger">Danger Zone</label>
-                                    <button class="btn btn-outline-danger d-block" onclick="router.clearAllData()">
-                                        <i class="fas fa-trash me-2"></i>Clear All Data
-                                    </button>
-                                    <small class="text-muted">This action cannot be undone</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
 
-        document.getElementById('app-content').innerHTML = content;
-        this.loadSettingsValues();
-    }
 
     loadSettingsValues() {
         // Load saved settings from localStorage
